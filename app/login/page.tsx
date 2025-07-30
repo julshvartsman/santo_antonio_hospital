@@ -1,0 +1,225 @@
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import Link from "next/link";
+import { Eye, EyeOff, Languages } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LoginCredentials } from "@/types";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().default(false),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+export default function LoginPage() {
+  const router = useRouter();
+  const { login, isLoading } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      setError(null);
+      const credentials: LoginCredentials = {
+        email: data.email,
+        password: data.password,
+      };
+      await login(credentials);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "pt" : "en");
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Language Toggle */}
+        <div className="flex items-center justify-end space-x-2">
+          <Languages className="h-4 w-4" />
+          <span className="text-sm">EN</span>
+          <Switch
+            checked={language === "pt"}
+            onCheckedChange={toggleLanguage}
+            className="data-[state=checked]:bg-green-600"
+          />
+          <span className="text-sm">PT</span>
+        </div>
+
+        {/* Login Card */}
+        <Card className="shadow-xl border-0">
+          <CardHeader className="space-y-4 text-center">
+            <div className="flex justify-center">
+              <div className="bg-primary/10 p-3 rounded-full">
+                
+              </div>
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold">
+                CityX Hospital
+              </CardTitle>
+              <CardDescription className="text-base">
+                {t("data.sustainability")}
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("auth.email")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="admin@cityx-hospital.com"
+                          {...field}
+                          className="h-12"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("auth.password")}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            {...field}
+                            className="h-12 pr-10"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex items-center justify-between">
+                  <FormField
+                    control={form.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="rounded border-gray-300"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {t("auth.rememberMe")}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {t("auth.forgotPassword")}
+                  </Link>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-medium"
+                  disabled={isLoading}
+                >
+                  {isLoading ? t("general.loading") : t("auth.signIn")}
+                </Button>
+              </form>
+            </Form>
+
+            {/* Demo Credentials */}
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
+              <p className="font-medium mb-2">Demo Credentials:</p>
+              <p>Email: admin@cityx-hospital.com</p>
+              <p>Password: password123</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
