@@ -177,9 +177,7 @@ export default function DataEntryPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {language.t("nav.dataEntry")}
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">Data Entry</h1>
         <p className="text-gray-600 mt-2">
           {language.language === "en"
             ? "Enter and manage monthly sustainability data for your hospital."
@@ -207,7 +205,7 @@ export default function DataEntryPage() {
               </Button>
             </div>
           </CardTitle>
-          <CardDescription>
+          <div className="text-sm text-muted-foreground">
             <div className="flex items-center justify-between">
               <span>
                 {new Date(
@@ -234,7 +232,7 @@ export default function DataEntryPage() {
                 )}
               </div>
             </div>
-          </CardDescription>
+          </div>
         </CardHeader>
       </Card>
 
@@ -281,7 +279,7 @@ export default function DataEntryPage() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Filter className="h-5 w-5 mr-2" />
-            {language.t("data.sustainability")} ({filteredMetrics.length})
+            Sustainability Data ({filteredMetrics.length})
           </CardTitle>
           <CardDescription>
             {language.language === "en"
@@ -294,24 +292,14 @@ export default function DataEntryPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">
-                    {language.t("data.category")}
-                  </TableHead>
+                  <TableHead className="w-[200px]">Category</TableHead>
                   <TableHead className="w-[150px]">Subcategory</TableHead>
-                  <TableHead className="w-[200px]">
-                    {language.t("data.metric")}
-                  </TableHead>
-                  <TableHead className="w-[100px] text-right">
-                    {language.t("data.value")}
-                  </TableHead>
-                  <TableHead className="w-[80px]">
-                    {language.t("data.unit")}
-                  </TableHead>
-                  <TableHead className="w-[100px] text-right">
-                    {language.t("data.target")}
-                  </TableHead>
+                  <TableHead className="w-[200px]">Metric</TableHead>
+                  <TableHead className="w-[100px] text-right">Value</TableHead>
+                  <TableHead className="w-[80px]">Unit</TableHead>
+                  <TableHead className="w-[100px] text-right">Target</TableHead>
                   <TableHead className="w-[100px] text-center">
-                    {language.t("data.status")}
+                    Status
                   </TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>

@@ -116,11 +116,7 @@ export default function DashboardPage() {
         >
           <Clock className="h-4 w-4" />
           <AlertTitle className="flex items-center justify-between">
-            <span>
-              {isDue
-                ? language.t("notifications.overdue")
-                : `${daysUntilDue} ${language.t("notifications.daysUntilDue")}`}
-            </span>
+            <span>{isDue ? "Overdue" : `${daysUntilDue} days until due`}</span>
             <Button
               size="sm"
               variant="outline"
@@ -128,7 +124,7 @@ export default function DashboardPage() {
               className="ml-4"
             >
               <MessageCircle className="h-4 w-4 mr-2" />
-              {language.t("notifications.notifyTeam")}
+              Notify Team
             </Button>
           </AlertTitle>
           <AlertDescription>
@@ -161,9 +157,7 @@ export default function DashboardPage() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {language.t("nav.dashboard")}
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">
           {language.language === "en"
             ? "Monitor your hospital's sustainability metrics and progress."
@@ -313,7 +307,7 @@ export default function DashboardPage() {
               onClick={handleNotifyTeam}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
-              {language.t("notifications.contactMrSilva")}
+              Contact Mr. Silva
             </Button>
           </CardContent>
         </Card>

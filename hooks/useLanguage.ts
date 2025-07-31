@@ -115,13 +115,21 @@ const translations = {
 };
 
 export function useLanguage(): UseLanguageReturn {
-  const [language, setLanguageState] = useState<Language>(() =>
-    getFromStorage<Language>("language", "en")
-  );
+  const [language, setLanguageState] = useState<Language>("en");
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize language from localStorage after component mounts
+  useEffect(() => {
+    const savedLanguage = getFromStorage<Language>("language", "en");
+    setLanguageState(savedLanguage);
+    setIsInitialized(true);
+  }, []);
 
   useEffect(() => {
-    setToStorage("language", language);
-  }, [language]);
+    if (isInitialized) {
+      setToStorage("language", language);
+    }
+  }, [language, isInitialized]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -135,7 +143,24 @@ export function useLanguage(): UseLanguageReturn {
       value = value?.[k];
     }
 
-    return value || key;
+    // Return the translated value or fallback to English if current language fails
+    if (value) {
+      return value;
+    }
+
+    // Fallback to English translation
+    if (language !== "en") {
+      let englishValue = translations["en"] as any;
+      for (const k of keys) {
+        englishValue = englishValue?.[k];
+      }
+      if (englishValue) {
+        return englishValue;
+      }
+    }
+
+    // Final fallback to the key itself
+    return key;
   };
 
   return {

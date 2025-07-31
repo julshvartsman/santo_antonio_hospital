@@ -50,7 +50,7 @@ export function Navigation({ children }: NavigationProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -62,11 +62,11 @@ export function Navigation({ children }: NavigationProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-screen">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b">
             <div className="flex items-center space-x-3">
@@ -89,7 +89,7 @@ export function Navigation({ children }: NavigationProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
+          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -106,7 +106,17 @@ export function Navigation({ children }: NavigationProps) {
                   onClick={() => setSidebarOpen(false)}
                 >
                   <Icon className="h-5 w-5" />
-                  <span>{language.t(item.name)}</span>
+                  <span>
+                    {item.name === "nav.dashboard"
+                      ? "Dashboard"
+                      : item.name === "nav.dataEntry"
+                      ? "Data Entry"
+                      : item.name === "nav.analytics"
+                      ? "Analytics"
+                      : item.name === "nav.settings"
+                      ? "Settings"
+                      : item.name}
+                  </span>
                 </Link>
               );
             })}
@@ -114,7 +124,7 @@ export function Navigation({ children }: NavigationProps) {
 
           {/* User Profile */}
           {auth.user && (
-            <div className="p-4 border-t">
+            <div className="flex-shrink-0 p-4 border-t">
               <Card className="p-3">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
@@ -146,7 +156,7 @@ export function Navigation({ children }: NavigationProps) {
                   onClick={auth.logout}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  {language.t("auth.logout")}
+                  Logout
                 </Button>
               </Card>
             </div>
@@ -155,9 +165,9 @@ export function Navigation({ children }: NavigationProps) {
       </div>
 
       {/* Main content */}
-      <div className="lg:ml-64">
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
         {/* Top bar */}
-        <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-4 lg:px-6">
+        <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
@@ -169,9 +179,7 @@ export function Navigation({ children }: NavigationProps) {
             </Button>
 
             <div className="hidden lg:block">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {language.t("nav.dashboard")}
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-900">Dashboard</h2>
             </div>
           </div>
 
@@ -201,8 +209,10 @@ export function Navigation({ children }: NavigationProps) {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="p-4 lg:p-6">{children}</main>
+        {/* Page content - scrollable */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <div className="max-w-7xl mx-auto">{children}</div>
+        </main>
       </div>
 
       {/* Floating Help Component */}

@@ -105,9 +105,7 @@ export function FloatingHelp() {
         <div className="fixed bottom-20 right-4 w-80 sm:w-96 h-96 z-50 shadow-2xl">
           <Card className="h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between p-4 bg-primary text-primary-foreground rounded-t-lg">
-              <CardTitle className="text-lg font-semibold">
-                {language.t("support.help")}
-              </CardTitle>
+              <CardTitle className="text-lg font-semibold">Help</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
@@ -185,7 +183,7 @@ export function FloatingHelp() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={language.t("support.askQuestion")}
+                    placeholder="Ask a question..."
                     className="flex-1"
                   />
                   <Button

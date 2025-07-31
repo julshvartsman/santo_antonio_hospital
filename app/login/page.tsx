@@ -93,16 +93,14 @@ export default function LoginPage() {
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-4 text-center">
             <div className="flex justify-center">
-              <div className="bg-primary/10 p-3 rounded-full">
-                
-              </div>
+              <div className="bg-primary/10 p-3 rounded-full"></div>
             </div>
             <div>
               <CardTitle className="text-2xl font-bold">
                 CityX Hospital
               </CardTitle>
               <CardDescription className="text-base">
-                {t("data.sustainability")}
+                Sustainability
               </CardDescription>
             </div>
           </CardHeader>
@@ -124,7 +122,7 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("auth.email")}</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
@@ -143,7 +141,7 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("auth.password")}</FormLabel>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
@@ -187,7 +185,7 @@ export default function LoginPage() {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-normal">
-                          {t("auth.rememberMe")}
+                          Remember me
                         </FormLabel>
                       </FormItem>
                     )}
@@ -197,7 +195,7 @@ export default function LoginPage() {
                     href="/forgot-password"
                     className="text-sm text-primary hover:text-primary/80 transition-colors"
                   >
-                    {t("auth.forgotPassword")}
+                    Forgot password?
                   </Link>
                 </div>
 
@@ -206,7 +204,7 @@ export default function LoginPage() {
                   className="w-full h-12 text-base font-medium"
                   disabled={isLoading}
                 >
-                  {isLoading ? t("general.loading") : t("auth.signIn")}
+                  {isLoading ? "Loading..." : "Sign In"}
                 </Button>
               </form>
             </Form>

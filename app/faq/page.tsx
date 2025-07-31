@@ -66,7 +66,7 @@ export default function FAQPage() {
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center">
           <HelpCircle className="h-8 w-8 mr-3 text-primary" />
-          {language.t("support.faq")}
+          FAQ
         </h1>
         <p className="text-gray-600 mt-2">
           {language.language === "en"
