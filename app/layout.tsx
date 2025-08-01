@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ClientProviders from "@/components/providers/ClientProviders";
+import Navigation from "@/components/Navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CityX Hospital - Sustainability Dashboard",
-  description:
-    "Hybrid sustainability data-entry web application for CityX Hospital",
+  title: "Hospital Sustainability Dashboard",
+  description: "Hospital sustainability data management and reporting system",
 };
 
 export default function RootLayout({
@@ -17,7 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className} suppressHydrationWarning={true}>
+        <ClientProviders>
+          <Navigation />
+          <main>{children}</main>
+        </ClientProviders>
+      </body>
     </html>
   );
 }

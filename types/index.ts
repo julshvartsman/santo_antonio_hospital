@@ -5,6 +5,7 @@ export interface User {
   name: string;
   role: "admin" | "user";
   avatar?: string;
+  hospital_id?: string;
 }
 
 export interface LoginCredentials {
@@ -146,7 +147,8 @@ export interface AlertProps {
 export interface UseAuthReturn {
   user: User | null;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User>;
+  signup: (credentials: LoginCredentials & { name?: string }) => Promise<User>;
   logout: () => void;
   isAuthenticated: boolean;
 }

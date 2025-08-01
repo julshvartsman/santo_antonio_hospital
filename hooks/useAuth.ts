@@ -1,66 +1,143 @@
 import { useState, useEffect } from "react";
 import { User, LoginCredentials, UseAuthReturn } from "@/types";
-import {
-  getFromStorage,
-  setToStorage,
-  removeFromStorage,
-  sleep,
-} from "@/lib/utils";
+import { supabase } from "@/lib/supabaseClient";
+import { getFromStorage, setToStorage, removeFromStorage } from "@/lib/utils";
 
-// Mock user data
-const mockUsers: User[] = [
-  {
-    id: "1",
-    email: "admin@cityx-hospital.com",
-    name: "Admin User",
-    role: "admin",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    id: "2",
-    email: "user@cityx-hospital.com",
-    name: "Regular User",
-    role: "user",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
-  },
-];
-
-// Mock authentication service
+// Authentication service using Supabase
 class AuthService {
   static async login(credentials: LoginCredentials): Promise<User> {
-    // Simulate API call
-    await sleep(1000);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
 
-    const user = mockUsers.find((u) => u.email === credentials.email);
-
-    if (!user) {
-      throw new Error("Invalid email or password");
+    if (error) {
+      throw new Error(error.message);
     }
 
-    // In a real app, you'd verify the password hash
-    if (credentials.password !== "password123") {
-      throw new Error("Invalid email or password");
+    if (!data.user) {
+      throw new Error("Login failed");
     }
 
-    return user;
+    // Fetch user profile from your profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profileError) {
+      // If profile doesn't exist, create one
+      const newProfile = {
+        id: data.user.id,
+        email: data.user.email!,
+        full_name:
+          data.user.user_metadata?.full_name ||
+          data.user.user_metadata?.name ||
+          data.user.email!.split("@")[0],
+        role: data.user.user_metadata?.role || "user",
+      };
+
+      const { data: createdProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert([newProfile])
+        .select()
+        .single();
+
+      if (createError) {
+        throw new Error("Failed to create user profile");
+      }
+
+      return {
+        id: createdProfile.id,
+        email: createdProfile.email,
+        name: createdProfile.full_name,
+        role: createdProfile.role,
+      } as User;
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.full_name,
+      role: profile.role,
+    } as User;
+  }
+
+  static async signup(
+    credentials: LoginCredentials & { name?: string }
+  ): Promise<User> {
+    console.log("Starting signup process for:", credentials.email);
+
+    const { data, error } = await supabase.auth.signUp({
+      email: credentials.email,
+      password: credentials.password,
+      options: {
+        data: {
+          full_name: credentials.name || credentials.email.split("@")[0],
+          role: "user",
+        },
+      },
+    });
+
+    if (error) {
+      console.error("Supabase auth signup error:", error);
+      throw new Error(`Authentication error: ${error.message}`);
+    }
+
+    if (!data.user) {
+      console.error("No user returned from signup");
+      throw new Error("Signup failed: No user returned");
+    }
+
+    console.log("User created successfully:", data.user.id);
+
+    // SIMPLE APPROACH: Just return a basic user object without database profile
+    // We'll create the profile later if needed
+    const basicUser: User = {
+      id: data.user.id,
+      email: data.user.email!,
+      name: credentials.name || data.user.email!.split("@")[0],
+      role: "user",
+    };
+
+    console.log("Returning basic user without database profile:", basicUser);
+    return basicUser;
   }
 
   static async logout(): Promise<void> {
-    // Simulate API call
-    await sleep(500);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 
   static async getCurrentUser(): Promise<User | null> {
-    const userData = getFromStorage<User | null>("user", null);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (!userData) {
+    if (!session?.user) {
       return null;
     }
 
-    // In a real app, you'd verify the session token
-    return userData;
+    // Fetch user profile
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error) {
+      return null;
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      name: profile.full_name,
+      role: profile.role,
+    } as User;
   }
 }
 
@@ -76,27 +153,55 @@ export function useAuth(): UseAuthReturn {
         setUser(currentUser);
       } catch (error) {
         console.error("Failed to initialize auth:", error);
-        removeFromStorage("user");
-
-        // Auto-authenticate with admin user for development
-        const defaultUser = mockUsers[0]; // Admin user
-        setUser(defaultUser);
-        setToStorage("user", defaultUser);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
     initAuth();
+
+    // Listen for auth changes from Supabase
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const currentUser = await AuthService.getCurrentUser();
+        setUser(currentUser);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        removeFromStorage("user");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (credentials: LoginCredentials): Promise<void> => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     setIsLoading(true);
     try {
       const loggedInUser = await AuthService.login(credentials);
       setUser(loggedInUser);
       setToStorage("user", loggedInUser);
+      return loggedInUser;
     } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signup = async (
+    credentials: LoginCredentials & { name?: string }
+  ): Promise<User> => {
+    setIsLoading(true);
+    try {
+      const newUser = await AuthService.signup(credentials);
+      setUser(newUser);
+      setToStorage("user", newUser);
+      return newUser;
+    } catch (error) {
+      console.error("Signup error:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -123,6 +228,7 @@ export function useAuth(): UseAuthReturn {
     user,
     isLoading,
     login,
+    signup,
     logout,
     isAuthenticated: !!user,
   };
