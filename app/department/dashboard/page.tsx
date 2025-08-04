@@ -1,0 +1,242 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useMyEntries } from "@/hooks/useMyEntries";
+import { useApp } from "@/components/providers/AppProvider";
+import {
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Download,
+  Activity,
+} from "lucide-react";
+
+// Badge component
+const Badge = ({
+  children,
+  variant = "default",
+  className = "",
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "success" | "warning" | "danger";
+  className?: string;
+}) => {
+  const baseClasses =
+    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+  const variantClasses = {
+    default: "bg-gray-100 text-gray-800",
+    success: "bg-green-100 text-green-800",
+    warning: "bg-yellow-100 text-yellow-800",
+    danger: "bg-red-100 text-red-800",
+  };
+
+  return (
+    <span className={`${baseClasses} ${variantClasses[variant]} ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+// Sparkline component
+const Sparkline = ({
+  data,
+  className = "",
+}: {
+  data: number[];
+  className?: string;
+}) => {
+  if (!data || data.length === 0)
+    return <div className="h-16 bg-gray-100 rounded"></div>;
+
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+
+  const points = data
+    .map((value, index) => {
+      const x = (index / (data.length - 1)) * 100;
+      const y = 100 - ((value - min) / range) * 100;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return (
+    <div className={`h-16 ${className}`}>
+      <svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <polyline
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          points={points}
+          className="text-blue-500"
+        />
+      </svg>
+    </div>
+  );
+};
+
+export default function DepartmentDashboard() {
+  const { data, loading, error, refresh, exportToCSV } = useMyEntries();
+  const { language } = useApp();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#225384] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>Error loading your data: {error}</AlertDescription>
+        </Alert>
+        <Button onClick={refresh} className="mt-4">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const currentMonth = new Date().toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
+  // Prepare sparkline data
+  const sparklineData = data.historical_entries.map((entry) => entry.kwh_usage);
+
+  return (
+    <div className="space-y-8">
+      {/* Page Title */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          {language.t("dashboard.department")}
+        </h1>
+        <p className="text-gray-600 mt-2">{language.t("dashboard.metrics")}</p>
+      </div>
+
+      {/* Submission Status Banner */}
+      <div>
+        {data.submission_status.submitted ? (
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>Metrics Submitted</strong> - You submitted your metrics
+              for {currentMonth} on{" "}
+              {data.submission_status.submitted_at &&
+                new Date(
+                  data.submission_status.submitted_at
+                ).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <Clock className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              <strong>Submission Pending</strong> - You haven't submitted your
+              metrics for {currentMonth} yet.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+
+      {/* Energy Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>12-Month Energy Trend</CardTitle>
+          <CardDescription>
+            Your hospital's energy usage over the past year
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Sparkline data={sparklineData} />
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-sm text-gray-500">Current</div>
+                <div className="text-lg font-semibold">
+                  {data.current_month_entry?.kwh_usage.toLocaleString() || "0"}{" "}
+                  kWh
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Average</div>
+                <div className="text-lg font-semibold">
+                  {Math.round(
+                    sparklineData.reduce((a, b) => a + b, 0) /
+                      sparklineData.length || 0
+                  ).toLocaleString()}{" "}
+                  kWh
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Peak</div>
+                <div className="text-lg font-semibold">
+                  {Math.max(...sparklineData, 0).toLocaleString()} kWh
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Export Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Export</CardTitle>
+          <CardDescription>
+            Export your historical data for analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex space-x-3">
+            <Button
+              variant="outline"
+              onClick={exportToCSV}
+              className="flex items-center space-x-2"
+            >
+              <Download className="h-4 w-4" />
+              <span>Export CSV</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={refresh}
+              className="flex items-center space-x-2"
+            >
+              <Activity className="h-4 w-4" />
+              <span>Refresh Data</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

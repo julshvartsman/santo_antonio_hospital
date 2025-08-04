@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 export default function LoginLayout({
@@ -7,5 +5,5 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <div className="min-h-screen">{children}</div>;
 }

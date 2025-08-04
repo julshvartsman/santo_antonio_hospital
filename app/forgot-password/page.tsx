@@ -28,6 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLanguage } from "@/hooks/useLanguage";
 import { sleep } from "@/lib/utils";
+import Logo from "@/components/ui/Logo";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -70,6 +71,7 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md">
           <Card className="shadow-xl border-0">
             <CardHeader className="space-y-4 text-center">
+              <Logo size="md" className="mx-auto mb-4" />
               <div className="flex justify-center">
                 <div className="bg-green-500/10 p-3 rounded-full">
                   <Mail className="h-8 w-8 text-green-600" />
@@ -98,12 +100,27 @@ export default function ForgotPasswordPage() {
                 </AlertDescription>
               </Alert>
 
-              <Link href="/login">
-                <Button className="w-full" variant="outline">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {language === "en" ? "Back to Login" : "Voltar ao Login"}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setSuccess(false)}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>
+                    {language === "en" ? "Back to Login" : "Voltar ao Login"}
+                  </span>
                 </Button>
-              </Link>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center space-x-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>
+                    {language === "en" ? "Resend Email" : "Reenviar Email"}
+                  </span>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -112,36 +129,24 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Language Toggle */}
-        <div className="flex items-center justify-end space-x-2">
-          <Languages className="h-4 w-4" />
-          <span className="text-sm">EN</span>
-          <Switch
-            checked={language === "pt"}
-            onCheckedChange={toggleLanguage}
-            className="data-[state=checked]:bg-green-600"
-          />
-          <span className="text-sm">PT</span>
-        </div>
-
-        {/* Forgot Password Card */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#225384]/5 to-green-50 p-4">
+      <div className="w-full max-w-md">
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-4 text-center">
+            <Logo size="md" className="mx-auto mb-4" />
             <div className="flex justify-center">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <Building2 className="h-8 w-8 text-primary" />
+              <div className="bg-[#225384]/10 p-3 rounded-full">
+                <Building2 className="h-8 w-8 text-[#225384]" />
               </div>
             </div>
             <div>
               <CardTitle className="text-2xl font-bold">
-                {language === "en" ? "Reset Password" : "Redefinir Senha"}
+                {language === "en" ? "Forgot Password" : "Esqueceu a Senha"}
               </CardTitle>
               <CardDescription className="text-base">
                 {language === "en"
-                  ? "Enter your email address and we'll send you reset instructions."
-                  : "Digite seu email e enviaremos instruções para redefinir sua senha."}
+                  ? "Enter your email address and we'll send you a link to reset your password."
+                  : "Digite seu endereço de email e enviaremos um link para redefinir sua senha."}
               </CardDescription>
             </div>
           </CardHeader>

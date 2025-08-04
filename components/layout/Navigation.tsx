@@ -26,7 +26,6 @@ import { FloatingHelp } from "@/components/support/FloatingHelp";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "nav.dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "nav.dataEntry", href: "/data-entry", icon: Database },
   { name: "nav.analytics", href: "/analytics", icon: Calendar },
   { name: "nav.settings", href: "/settings", icon: Settings },

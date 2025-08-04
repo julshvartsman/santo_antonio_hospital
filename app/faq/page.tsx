@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/accordion";
 import { useApp } from "@/components/providers/AppProvider";
 import { mockFAQs } from "@/utils/mockData";
+import Logo from "@/components/ui/Logo";
 
 const categoryIcons = {
   "Data Entry": Database,
@@ -64,10 +65,13 @@ export default function FAQPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-          <HelpCircle className="h-8 w-8 mr-3 text-primary" />
-          FAQ
-        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <Logo size="sm" />
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <HelpCircle className="h-8 w-8 mr-3 text-primary" />
+            FAQ
+          </h1>
+        </div>
         <p className="text-gray-600 mt-2">
           {language.language === "en"
             ? "Find answers to common questions about the sustainability data system."

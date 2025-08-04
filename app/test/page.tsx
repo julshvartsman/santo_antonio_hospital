@@ -2,7 +2,7 @@
 
 export default function TestPage() {
   return (
-    <div className="min-h-screen bg-blue-500 flex items-center justify-center">
+    <div className="min-h-screen bg-[#225384] flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
           Tailwind CSS Test

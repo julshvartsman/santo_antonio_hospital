@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Logo from "@/components/ui/Logo";
 
 export default function HomePage() {
   const router = useRouter();
@@ -24,13 +25,16 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!mounted) return; // Don't redirect until mounted
-    
+
     if (!isLoading && user) {
       // Redirect based on user role
-      if (user.role === "admin") {
+      if (user.role === "admin" || user.role === "super_admin") {
         router.push("/admin/dashboard");
-      } else if (user.role === "user") {
-        router.push("/dashboard");
+      } else if (user.role === "department_head") {
+        router.push("/department/dashboard");
+      } else {
+        // Fallback for any other roles - default to department dashboard
+        router.push("/department/dashboard");
       }
     } else if (!isLoading && !user) {
       // Redirect to login if not authenticated
@@ -43,7 +47,8 @@ export default function HomePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <Logo size="lg" className="mb-6" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#225384] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -55,6 +60,7 @@ export default function HomePage() {
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
+            <Logo size="md" className="mx-auto mb-4" />
             <CardTitle className="text-2xl">
               Hospital Sustainability Dashboard
             </CardTitle>
@@ -75,6 +81,7 @@ export default function HomePage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
+        <Logo size="lg" className="mb-6" />
         <h1 className="text-2xl font-bold mb-4">
           Hospital Sustainability Dashboard
         </h1>

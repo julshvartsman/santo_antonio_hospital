@@ -1,166 +1,108 @@
 import { useState, useEffect } from "react";
-import { Language, UseLanguageReturn } from "@/types";
-import { getFromStorage, setToStorage } from "@/lib/utils";
 
-// Translation dictionary
+type Language = "en" | "pt";
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+// Simple translations
 const translations = {
   en: {
-    // Authentication
-    "auth.login": "Login",
-    "auth.email": "Email",
-    "auth.password": "Password",
-    "auth.forgotPassword": "Forgot password?",
-    "auth.signIn": "Sign In",
-    "auth.logout": "Logout",
-    "auth.rememberMe": "Remember me",
-
-    // Navigation
-    "nav.dashboard": "Dashboard",
-    "nav.dataEntry": "Data Entry",
-    "nav.analytics": "Analytics",
-    "nav.settings": "Settings",
-    "nav.help": "Help",
-
-    // Data Entry
-    "data.sustainability": "Sustainability Data",
-    "data.category": "Category",
-    "data.metric": "Metric",
-    "data.value": "Value",
-    "data.unit": "Unit",
-    "data.target": "Target",
-    "data.status": "Status",
-    "data.lastUpdated": "Last Updated",
-    "data.locked": "Locked",
-    "data.unlock": "Unlock",
-    "data.save": "Save",
-    "data.edit": "Edit",
-
-    // Notifications
-    "notifications.daysUntilDue": "days until due",
-    "notifications.overdue": "Overdue",
-    "notifications.notifyTeam": "Notify Team",
-    "notifications.contactMrSilva": "Contact Mr. Silva",
-
-    // Support
-    "support.help": "Help",
-    "support.faq": "FAQ",
-    "support.askQuestion": "Ask a question...",
-    "support.send": "Send",
-
-    // General
-    "general.loading": "Loading...",
-    "general.error": "Error",
-    "general.success": "Success",
-    "general.warning": "Warning",
-    "general.info": "Information",
-    "general.close": "Close",
-    "general.cancel": "Cancel",
-    "general.confirm": "Confirm",
-    "general.language": "Language",
+    "login.title": "Sign In",
+    "login.email": "Email",
+    "login.password": "Password",
+    "login.remember": "Remember me",
+    "login.forgot": "Forgot password?",
+    "login.signin": "Sign In",
+    "login.signup": "Don't have an account?",
+    "signup.title": "Create Account",
+    "signup.name": "Full Name",
+    "signup.confirmPassword": "Confirm Password",
+    "signup.create": "Create Account",
+    "signup.login": "Already have an account?",
+    "dashboard.admin": "Admin Dashboard",
+    "dashboard.department": "Department Dashboard",
+    "dashboard.manage": "Manage hospital sustainability metrics and reports",
+    "dashboard.metrics":
+      "Manage your hospital's monthly sustainability metrics",
+    "menu.dashboard": "Dashboard",
+    "menu.dataAnalysis": "Data Analysis",
+    "menu.fileUpload": "File Upload",
+    "menu.notifications": "Notifications",
+    "menu.dataEntry": "Data Entry",
+    "menu.reports": "Reports",
+    "menu.export": "Export Data",
+    "menu.settings": "Settings",
+    "menu.contact": "Contact",
+    "menu.help": "Help",
+    "others.menu": "Others",
+    "back.to.main": "Back to Main Site",
+    "user.menu": "User Menu",
+    logout: "Logout",
+    menu: "Menu",
+    others: "Others",
   },
   pt: {
-    // Authentication
-    "auth.login": "Entrar",
-    "auth.email": "Email",
-    "auth.password": "Senha",
-    "auth.forgotPassword": "Esqueceu a senha?",
-    "auth.signIn": "Entrar",
-    "auth.logout": "Sair",
-    "auth.rememberMe": "Lembrar de mim",
-
-    // Navigation
-    "nav.dashboard": "Painel",
-    "nav.dataEntry": "Entrada de Dados",
-    "nav.analytics": "Analíticas",
-    "nav.settings": "Configurações",
-    "nav.help": "Ajuda",
-
-    // Data Entry
-    "data.sustainability": "Dados de Sustentabilidade",
-    "data.category": "Categoria",
-    "data.metric": "Métrica",
-    "data.value": "Valor",
-    "data.unit": "Unidade",
-    "data.target": "Meta",
-    "data.status": "Status",
-    "data.lastUpdated": "Última Atualização",
-    "data.locked": "Bloqueado",
-    "data.unlock": "Desbloquear",
-    "data.save": "Salvar",
-    "data.edit": "Editar",
-
-    // Notifications
-    "notifications.daysUntilDue": "dias até o vencimento",
-    "notifications.overdue": "Atrasado",
-    "notifications.notifyTeam": "Notificar Equipe",
-    "notifications.contactMrSilva": "Contatar Sr. Silva",
-
-    // Support
-    "support.help": "Ajuda",
-    "support.faq": "Perguntas Frequentes",
-    "support.askQuestion": "Faça uma pergunta...",
-    "support.send": "Enviar",
-
-    // General
-    "general.loading": "Carregando...",
-    "general.error": "Erro",
-    "general.success": "Sucesso",
-    "general.warning": "Aviso",
-    "general.info": "Informação",
-    "general.close": "Fechar",
-    "general.cancel": "Cancelar",
-    "general.confirm": "Confirmar",
-    "general.language": "Idioma",
+    "login.title": "Entrar",
+    "login.email": "Email",
+    "login.password": "Senha",
+    "login.remember": "Lembrar de mim",
+    "login.forgot": "Esqueceu a senha?",
+    "login.signin": "Entrar",
+    "login.signup": "Não tem conta?",
+    "signup.title": "Criar Conta",
+    "signup.name": "Nome Completo",
+    "signup.confirmPassword": "Confirmar Senha",
+    "signup.create": "Criar Conta",
+    "signup.login": "Já tem conta?",
+    "dashboard.admin": "Painel Administrativo",
+    "dashboard.department": "Painel do Departamento",
+    "dashboard.manage":
+      "Gerencie métricas de sustentabilidade hospitalar e relatórios",
+    "dashboard.metrics":
+      "Gerencie as métricas mensais de sustentabilidade do seu hospital",
+    "menu.dashboard": "Painel",
+    "menu.dataAnalysis": "Análise de Dados",
+    "menu.fileUpload": "Upload de Arquivos",
+    "menu.notifications": "Notificações",
+    "menu.dataEntry": "Entrada de Dados",
+    "menu.reports": "Relatórios",
+    "menu.export": "Exportar Dados",
+    "menu.settings": "Configurações",
+    "menu.contact": "Contato",
+    "menu.help": "Ajuda",
+    "others.menu": "Outros",
+    "back.to.main": "Voltar ao Site Principal",
+    "user.menu": "Menu do Usuário",
+    logout: "Sair",
+    menu: "Menu",
+    others: "Outros",
   },
 };
 
-export function useLanguage(): UseLanguageReturn {
-  const [language, setLanguageState] = useState<Language>("en");
-  const [isInitialized, setIsInitialized] = useState(false);
+export function useLanguage(): LanguageContextType {
+  const [language, setLanguage] = useState<Language>("en");
 
-  // Initialize language from localStorage after component mounts
+  // Load language from localStorage on mount
   useEffect(() => {
-    const savedLanguage = getFromStorage<Language>("language", "en");
-    setLanguageState(savedLanguage);
-    setIsInitialized(true);
+    const savedLanguage = localStorage.getItem("language") as Language;
+    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "pt")) {
+      setLanguage(savedLanguage);
+    }
   }, []);
 
+  // Save language to localStorage when changed
   useEffect(() => {
-    if (isInitialized) {
-      setToStorage("language", language);
-    }
-  }, [language, isInitialized]);
-
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-  };
+    localStorage.setItem("language", language);
+  }, [language]);
 
   const t = (key: string): string => {
-    const keys = key.split(".");
-    let value = translations[language] as any;
-
-    for (const k of keys) {
-      value = value?.[k];
-    }
-
-    // Return the translated value or fallback to English if current language fails
-    if (value) {
-      return value;
-    }
-
-    // Fallback to English translation
-    if (language !== "en") {
-      let englishValue = translations["en"] as any;
-      for (const k of keys) {
-        englishValue = englishValue?.[k];
-      }
-      if (englishValue) {
-        return englishValue;
-      }
-    }
-
-    // Final fallback to the key itself
-    return key;
+    return (
+      translations[language][key as keyof (typeof translations)["en"]] || key
+    );
   };
 
   return {

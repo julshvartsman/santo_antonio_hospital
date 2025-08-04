@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
             <CardTitle className="text-sm font-medium">
               Water Conservation
             </CardTitle>
-            <Droplets className="h-4 w-4 text-blue-600" />
+            <Droplets className="h-4 w-4 text-[#225384]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">1,089 m³</div>
@@ -285,10 +285,10 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900">User Activity</h4>
-                <div className="text-2xl font-bold text-blue-900">127</div>
-                <p className="text-sm text-blue-700">
+              <div className="p-4 bg-[#225384]/10 rounded-lg">
+                <h4 className="font-medium text-[#225384]">User Activity</h4>
+                <div className="text-2xl font-bold text-[#225384]">127</div>
+                <p className="text-sm text-[#225384]">
                   Total data entries this month
                 </p>
               </div>

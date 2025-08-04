@@ -108,36 +108,51 @@ class AuthService {
   static async logout(): Promise<void> {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      throw new Error(error.message);
+      console.error("Logout error:", error);
+      // Don't throw error, just log it
     }
   }
 
   static async getCurrentUser(): Promise<User | null> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
-    if (!session?.user) {
+      if (error) {
+        console.error("Session error:", error);
+        // Clear any invalid session data
+        await supabase.auth.signOut();
+        return null;
+      }
+
+      if (!session?.user) {
+        return null;
+      }
+
+      // Fetch user profile
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        return null;
+      }
+
+      return {
+        id: profile.id,
+        email: profile.email,
+        name: profile.full_name,
+        role: profile.role,
+      } as User;
+    } catch (error) {
+      console.error("getCurrentUser error:", error);
       return null;
     }
-
-    // Fetch user profile
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .single();
-
-    if (error) {
-      return null;
-    }
-
-    return {
-      id: profile.id,
-      email: profile.email,
-      name: profile.full_name,
-      role: profile.role,
-    } as User;
   }
 }
 
@@ -154,6 +169,12 @@ export function useAuth(): UseAuthReturn {
       } catch (error) {
         console.error("Failed to initialize auth:", error);
         setUser(null);
+        // Clear any invalid session data
+        try {
+          await supabase.auth.signOut();
+        } catch (signOutError) {
+          console.error("Failed to sign out during init:", signOutError);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -165,10 +186,17 @@ export function useAuth(): UseAuthReturn {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change:", event, session?.user?.id);
+
       if (event === "SIGNED_IN" && session?.user) {
-        const currentUser = await AuthService.getCurrentUser();
-        setUser(currentUser);
-      } else if (event === "SIGNED_OUT") {
+        try {
+          const currentUser = await AuthService.getCurrentUser();
+          setUser(currentUser);
+        } catch (error) {
+          console.error("Error getting user after sign in:", error);
+          setUser(null);
+        }
+      } else if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
         setUser(null);
         removeFromStorage("user");
       }
