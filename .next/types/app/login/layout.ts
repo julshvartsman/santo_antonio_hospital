@@ -1,4 +1,4 @@
-// File: /Users/juliashvartsman/Desktop/cityxhospital/app/login/layout.tsx
+// File: /Users/aaronnguyen/Desktop/cityx-hospital/app/login/layout.tsx
 import * as entry from '../../../../app/login/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -1,8 +1,5 @@
 {
-  "/admin/settings/page": "app/admin/settings/page.js",
-  "/admin/data-analysis/page": "app/admin/data-analysis/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/department/dashboard/page": "app/department/dashboard/page.js",
-  "/signup/page": "app/signup/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
   "/login/page": "app/login/page.js"
 }
