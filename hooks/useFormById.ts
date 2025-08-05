@@ -41,7 +41,7 @@ export const useFormById = (formId: string) => {
   };
 
   const fetchForm = async () => {
-    if (!formId || !user?.hospital_id) {
+    if (!user?.hospital_id) {
       setLoading(false);
       return;
     }
@@ -50,47 +50,72 @@ export const useFormById = (formId: string) => {
       setLoading(true);
       setError(null);
 
-      // Parse formId to extract hospital_id, month, year
       const { hospitalId, month, year } = parseFormId(formId);
 
-      // Fetch existing form
-      const { data, error: fetchError } = await supabase
+      // Check if this form exists in the forms directory
+      const { data: formData, error: formError } = await supabase
         .from("forms")
         .select("*")
         .eq("id", formId)
         .single();
 
-      if (fetchError && fetchError.code !== "PGRST116") {
-        // PGRST116 = not found
-        throw fetchError;
+      if (formError && formError.code !== "PGRST116") {
+        throw formError;
       }
 
-      if (data) {
-        // Form exists, return it
-        setForm(data);
-      } else {
-        // Form doesn't exist, create a new one
-        const newForm: Omit<Form, "created_at" | "updated_at"> = {
-          id: formId,
-          hospital_id: hospitalId,
-          month,
-          year,
-          data: {},
-          submitted: false,
-        };
+      // Get the corresponding entry data
+      const monthYear = `${year}-${month.toString().padStart(2, '0')}-01`;
+      const { data: entryData, error: entryError } = await supabase
+        .from("entries")
+        .select("*")
+        .eq("hospital_id", hospitalId)
+        .eq("month_year", monthYear)
+        .single();
 
-        const { data: createdForm, error: createError } = await supabase
+      if (entryError && entryError.code !== "PGRST116") {
+        throw entryError;
+      }
+
+      // Create or update the form directory entry
+      if (!formData) {
+        const { error: createFormError } = await supabase
           .from("forms")
-          .insert(newForm)
-          .select()
-          .single();
+          .insert([{
+            id: formId,
+            hospital_id: hospitalId,
+            month,
+            year,
+            submitted: false,
+          }]);
 
-        if (createError) {
-          throw createError;
+        if (createFormError) {
+          throw createFormError;
         }
-
-        setForm(createdForm);
       }
+
+      // Create the form object with data from entries table
+      const form: Form = {
+        id: formId,
+        hospital_id: hospitalId,
+        month,
+        year,
+        data: entryData ? {
+          energy_usage: entryData.kwh_usage,
+          water_usage: entryData.water_usage_m3,
+          co2_emissions: entryData.co2_emissions,
+          waste_generated: entryData.waste_generated,
+          recycling_rate: entryData.recycling_rate,
+          renewable_energy: entryData.renewable_energy_usage,
+          paper_usage: entryData.paper_usage,
+          chemical_usage: entryData.chemical_usage,
+        } : {},
+        submitted: formData?.submitted || entryData?.submitted || false,
+        submitted_at: formData?.submitted_at || entryData?.submitted_at,
+        created_at: formData?.created_at,
+        updated_at: formData?.updated_at,
+      };
+
+      setForm(form);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch form");
     } finally {
@@ -99,25 +124,69 @@ export const useFormById = (formId: string) => {
   };
 
   const saveForm = async (data: Record<string, number>) => {
-    if (!form) return;
+    if (!form || !user) return;
 
     try {
       setSaving(true);
       setError(null);
 
-      const { error: updateError } = await supabase
-        .from("forms")
-        .update({
-          data,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", formId);
+      const monthYear = `${form.year}-${form.month.toString().padStart(2, '0')}-01`;
 
-      if (updateError) {
-        throw updateError;
+      // Check if entry already exists
+      const { data: existingEntry, error: checkError } = await supabase
+        .from("entries")
+        .select("id")
+        .eq("hospital_id", form.hospital_id)
+        .eq("month_year", monthYear)
+        .single();
+
+      const entryData = {
+        hospital_id: form.hospital_id,
+        user_id: user.id,
+        month_year: monthYear,
+        kwh_usage: data.energy_usage || 0,
+        water_usage_m3: data.water_usage || 0,
+        co2_emissions: data.co2_emissions || 0,
+        waste_generated: data.waste_generated || 0,
+        recycling_rate: data.recycling_rate || 0,
+        renewable_energy_usage: data.renewable_energy || 0,
+        paper_usage: data.paper_usage || 0,
+        chemical_usage: data.chemical_usage || 0,
+        submitted: false,
+        updated_at: new Date().toISOString(),
+      };
+
+      let entryResult;
+
+      if (existingEntry) {
+        // Update existing entry
+        entryResult = await supabase
+          .from("entries")
+          .update(entryData)
+          .eq("id", existingEntry.id)
+          .select()
+          .single();
+      } else {
+        // Create new entry
+        entryResult = await supabase
+          .from("entries")
+          .insert([entryData])
+          .select()
+          .single();
       }
 
-      setForm((prev) => (prev ? { ...prev, data } : null));
+      if (entryResult.error) {
+        throw entryResult.error;
+      }
+
+      setForm((prev) =>
+        prev
+          ? {
+              ...prev,
+              data,
+            }
+          : null
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save form");
     } finally {
@@ -126,24 +195,76 @@ export const useFormById = (formId: string) => {
   };
 
   const submitForm = async (data: Record<string, number>) => {
-    if (!form) return;
+    if (!form || !user) return;
 
     try {
       setSaving(true);
       setError(null);
 
-      const { error: updateError } = await supabase
+      const monthYear = `${form.year}-${form.month.toString().padStart(2, '0')}-01`;
+
+      // Update forms table with submission status
+      const { error: updateFormError } = await supabase
         .from("forms")
         .update({
-          data,
           submitted: true,
           submitted_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", formId);
 
-      if (updateError) {
-        throw updateError;
+      if (updateFormError) {
+        throw updateFormError;
+      }
+
+      // Update entries table with all the data
+      const entryData = {
+        hospital_id: form.hospital_id,
+        user_id: user.id,
+        month_year: monthYear,
+        kwh_usage: data.energy_usage || 0,
+        water_usage_m3: data.water_usage || 0,
+        co2_emissions: data.co2_emissions || 0,
+        waste_generated: data.waste_generated || 0,
+        recycling_rate: data.recycling_rate || 0,
+        renewable_energy_usage: data.renewable_energy || 0,
+        paper_usage: data.paper_usage || 0,
+        chemical_usage: data.chemical_usage || 0,
+        submitted: true,
+        submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Check if entry already exists
+      const { data: existingEntry, error: checkError } = await supabase
+        .from("entries")
+        .select("id")
+        .eq("hospital_id", form.hospital_id)
+        .eq("month_year", monthYear)
+        .single();
+
+      let entryResult;
+
+      if (existingEntry) {
+        // Update existing entry
+        entryResult = await supabase
+          .from("entries")
+          .update(entryData)
+          .eq("id", existingEntry.id)
+          .select()
+          .single();
+      } else {
+        // Create new entry
+        entryResult = await supabase
+          .from("entries")
+          .insert([entryData])
+          .select()
+          .single();
+      }
+
+      if (entryResult.error) {
+        console.error("Error syncing to entries table:", entryResult.error);
+        // Don't throw error here - forms table was updated successfully
       }
 
       setForm((prev) =>

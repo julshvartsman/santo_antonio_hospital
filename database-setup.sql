@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS entries (
   kwh_usage DECIMAL(10,2) NOT NULL DEFAULT 0,
   water_usage_m3 DECIMAL(10,2) NOT NULL DEFAULT 0,
   co2_emissions DECIMAL(10,2) NOT NULL DEFAULT 0,
+  waste_generated DECIMAL(10,2) NOT NULL DEFAULT 0,
+  recycling_rate DECIMAL(5,2) NOT NULL DEFAULT 0,
+  renewable_energy_usage DECIMAL(10,2) NOT NULL DEFAULT 0,
+  paper_usage DECIMAL(10,2) NOT NULL DEFAULT 0,
+  chemical_usage DECIMAL(10,2) NOT NULL DEFAULT 0,
   submitted BOOLEAN DEFAULT FALSE,
   submitted_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -38,13 +43,12 @@ CREATE TABLE IF NOT EXISTS entries (
   UNIQUE(hospital_id, month_year)
 );
 
--- Forms table (new dynamic forms system)
+-- Forms table (directory of all possible forms)
 CREATE TABLE IF NOT EXISTS forms (
   id TEXT PRIMARY KEY, -- Format: '${hospitalId}-${MM}-${YYYY}'
   hospital_id UUID REFERENCES hospitals(id) ON DELETE CASCADE,
   month INT NOT NULL,
   year INT NOT NULL,
-  data JSONB DEFAULT '{}', -- map of metricKey → numeric value
   submitted BOOLEAN DEFAULT FALSE,
   submitted_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

@@ -49,36 +49,8 @@ export const useMyFormList = () => {
       setLoading(true);
       setError(null);
 
-      // Get current date
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1;
-
-      // Generate the last 12 months of form IDs
-      const formIds: string[] = [];
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(currentYear, currentMonth - 1 - i, 1);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const formId = `${user.hospital_id}-${month
-          .toString()
-          .padStart(2, "0")}-${year}`;
-        formIds.push(formId);
-      }
-
-      // Fetch forms from Supabase
-      const { data, error: fetchError } = await supabase
-        .from("forms")
-        .select("id, month, year, submitted, submitted_at")
-        .in("id", formIds)
-        .order("year", { ascending: false })
-        .order("month", { ascending: false });
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      // Transform data to include form_name and ensure all 12 months are represented
+      // Generate all 12 months for the current year
+      const currentYear = new Date().getFullYear();
       const monthNames = [
         "January",
         "February",
@@ -94,38 +66,45 @@ export const useMyFormList = () => {
         "December",
       ];
 
-      const formsMap = new Map<string, FormListEntry>();
-
-      // Initialize all 12 months
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(currentYear, currentMonth - 1 - i, 1);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const formId = `${user.hospital_id}-${month
-          .toString()
-          .padStart(2, "0")}-${year}`;
-
-        formsMap.set(formId, {
+      // Create base forms for all 12 months
+      const baseForms: FormListEntry[] = Array.from({ length: 12 }, (_, index) => {
+        const month = index + 1;
+        const formId = `${user.hospital_id}-${month.toString().padStart(2, '0')}-${currentYear}`;
+        return {
           id: formId,
           month,
-          year,
+          year: currentYear,
+          form_name: `${monthNames[month - 1]} ${currentYear}`,
           submitted: false,
-          form_name: `${monthNames[month - 1]} ${year}`,
-        });
+          submitted_at: null,
+        };
+      });
+
+      // Fetch existing forms from database to update status
+      const { data: existingForms, error: fetchError } = await supabase
+        .from("forms")
+        .select("id, month, year, submitted, submitted_at")
+        .eq("hospital_id", user.hospital_id)
+        .eq("year", currentYear);
+
+      if (fetchError) {
+        throw fetchError;
       }
 
-      // Update with actual data from database
-      if (data) {
-        data.forEach((form) => {
-          const formName = `${monthNames[form.month - 1]} ${form.year}`;
-          formsMap.set(form.id, {
-            ...form,
-            form_name: formName,
-          });
-        });
-      }
+      // Merge existing forms with base forms
+      const forms = baseForms.map(baseForm => {
+        const existingForm = existingForms?.find(ef => ef.id === baseForm.id);
+        if (existingForm) {
+          return {
+            ...baseForm,
+            submitted: existingForm.submitted,
+            submitted_at: existingForm.submitted_at,
+          };
+        }
+        return baseForm;
+      });
 
-      setForms(Array.from(formsMap.values()));
+      setForms(forms);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch forms");
     } finally {
