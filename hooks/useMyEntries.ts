@@ -46,6 +46,13 @@ export function useMyEntries() {
 
   useEffect(() => {
     if (user) {
+      if (!user.hospital_id) {
+        setError(
+          "No hospital assigned to your account. Please contact an administrator."
+        );
+        setLoading(false);
+        return;
+      }
       fetchMyEntries();
     }
   }, [user]);
@@ -158,6 +165,10 @@ export function useMyEntries() {
   const submitFinal = async (formData: {
     kwh_usage: number;
     water_usage_m3: number;
+    waste_type1: number;
+    waste_type2: number;
+    waste_type3: number;
+    waste_type4: number;
     co2_emissions?: number;
   }) => {
     if (!user || !data)
@@ -166,10 +177,15 @@ export function useMyEntries() {
     try {
       const currentMonth = data.current_month_key;
 
-      // Calculate CO2 emissions if not provided
+      // Calculate CO2 emissions if not provided - includes electricity, water, and all waste types
       const co2_emissions =
         formData.co2_emissions ||
-        formData.kwh_usage * 0.5 + formData.water_usage_m3 * 0.1;
+        formData.kwh_usage * 0.5 +
+          formData.water_usage_m3 * 0.1 +
+          formData.waste_type1 * 0.8 +
+          formData.waste_type2 * 0.7 +
+          formData.waste_type3 * 0.6 +
+          formData.waste_type4 * 0.5;
 
       const entryData = {
         hospital_id: user.hospital_id!,
@@ -177,6 +193,10 @@ export function useMyEntries() {
         month_year: currentMonth,
         kwh_usage: formData.kwh_usage,
         water_usage_m3: formData.water_usage_m3,
+        waste_type1: formData.waste_type1,
+        waste_type2: formData.waste_type2,
+        waste_type3: formData.waste_type3,
+        waste_type4: formData.waste_type4,
         co2_emissions,
         submitted: true,
         submitted_at: new Date().toISOString(),

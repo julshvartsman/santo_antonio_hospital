@@ -8,21 +8,33 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: "pkce",
+    // Reduce auth timeout for faster response
+    storageKey: "cityx-hospital-auth",
   },
   global: {
     headers: {
-      'X-Client-Info': 'cityx-hospital'
-    }
+      "X-Client-Info": "cityx-hospital",
+    },
+    // Add fetch timeout
+    fetch: (url, options = {}) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      return fetch(url, {
+        ...options,
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
+    },
   },
   db: {
-    schema: 'public'
+    schema: "public",
   },
   realtime: {
     params: {
-      eventsPerSecond: 10
-    }
-  }
+      eventsPerSecond: 5, // Reduced from 10
+    },
+  },
 });
 
 // For server-side operations with elevated permissions
@@ -57,6 +69,10 @@ export interface Entry {
   month_year: string; // Format: YYYY-MM-01
   kwh_usage: number;
   water_usage_m3: number;
+  waste_type1: number;
+  waste_type2: number;
+  waste_type3: number;
+  waste_type4: number;
   co2_emissions: number;
   submitted: boolean;
   submitted_at?: string;

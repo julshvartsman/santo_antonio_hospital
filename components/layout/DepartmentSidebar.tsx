@@ -23,7 +23,6 @@ import {
 const menu = [
   { href: "/department/dashboard", label: "menu.dashboard", icon: HomeIcon },
   { href: "/department/data-entry", label: "menu.dataEntry", icon: FileText },
-  { href: "/department/reports", label: "menu.reports", icon: BarChart3 },
   { href: "/department/help", label: "menu.help", icon: HelpCircle },
 ];
 

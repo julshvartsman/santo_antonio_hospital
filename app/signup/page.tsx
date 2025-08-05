@@ -51,7 +51,11 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
-  const { hospitals, loading: hospitalsLoading, error: hospitalsError } = useHospitals();
+  const {
+    hospitals,
+    loading: hospitalsLoading,
+    error: hospitalsError,
+  } = useHospitals();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,7 +90,7 @@ export default function SignupPage() {
       setSuccess(null);
 
       // Create user account with Supabase Auth
-      console.log('Signing up user with hospital:', data.hospital);
+      console.log("Signing up user with hospital:", data.hospital);
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -105,60 +109,78 @@ export default function SignupPage() {
 
       if (authData.user) {
         // Wait a moment for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         // Manually ensure hospital assignment if the trigger didn't work
         try {
           const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', authData.user.id)
+            .from("profiles")
+            .select("*")
+            .eq("id", authData.user.id)
             .single();
 
           if (profile && !profile.hospital_id) {
-            console.log('Profile found but no hospital_id, attempting to assign hospital:', data.hospital);
+            console.log(
+              "Profile found but no hospital_id, attempting to assign hospital:",
+              data.hospital
+            );
             // Get hospital ID by name
             const { data: hospital, error: hospitalError } = await supabase
-              .from('hospitals')
-              .select('id')
-              .eq('name', data.hospital)
+              .from("hospitals")
+              .select("id")
+              .eq("name", data.hospital)
               .single();
 
             if (hospital && !hospitalError) {
-              console.log('Hospital found, updating profile with hospital_id:', hospital.id);
+              console.log(
+                "Hospital found, updating profile with hospital_id:",
+                hospital.id
+              );
               // Update profile with hospital_id
               const { error: updateError } = await supabase
-                .from('profiles')
+                .from("profiles")
                 .update({ hospital_id: hospital.id })
-                .eq('id', authData.user.id);
-              
+                .eq("id", authData.user.id);
+
               if (updateError) {
-                console.error('Error updating profile with hospital_id:', updateError);
+                console.error(
+                  "Error updating profile with hospital_id:",
+                  updateError
+                );
               } else {
-                console.log('Successfully updated profile with hospital_id:', hospital.id);
+                console.log(
+                  "Successfully updated profile with hospital_id:",
+                  hospital.id
+                );
               }
             } else {
-              console.error('Hospital not found or error:', hospitalError);
+              console.error("Hospital not found or error:", hospitalError);
               // Try to find hospital by partial name match as fallback
               const { data: partialMatch, error: partialError } = await supabase
-                .from('hospitals')
-                .select('id, name')
-                .ilike('name', `%${data.hospital}%`)
+                .from("hospitals")
+                .select("id, name")
+                .ilike("name", `%${data.hospital}%`)
                 .single();
-              
+
               if (partialMatch && !partialError) {
-                console.log('Found hospital by partial match:', partialMatch.name);
+                console.log(
+                  "Found hospital by partial match:",
+                  partialMatch.name
+                );
                 await supabase
-                  .from('profiles')
+                  .from("profiles")
                   .update({ hospital_id: partialMatch.id })
-                  .eq('id', authData.user.id);
+                  .eq("id", authData.user.id);
               }
             }
           } else if (profile && profile.hospital_id) {
-            console.log('Profile already has hospital_id:', profile.hospital_id);
+            console.log(
+              "Profile already has hospital_id:",
+              profile.hospital_id
+            );
           }
         } catch (profileErr) {
-          console.warn('Profile assignment warning:', profileErr);
+          console.warn("Profile assignment warning:", profileErr);
           // Continue anyway - the user can still sign in
         }
 
@@ -185,11 +207,11 @@ export default function SignupPage() {
       {/* Left side - Logo */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="max-w-md">
-          <Logo size="lg" className="mb-8" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <Logo size="xl" className="mb-8" />
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Hospital Sustainability Dashboard
           </h2>
-          <p className="text-gray-600">
+          <p className="text-lg text-gray-600">
             Join our platform to manage and monitor sustainability metrics
             across all hospital departments
           </p>
@@ -316,11 +338,21 @@ export default function SignupPage() {
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         disabled={hospitalsLoading}
-                        key={hospitalsLoading ? 'loading' : `hospitals-${hospitals.length}`}
+                        key={
+                          hospitalsLoading
+                            ? "loading"
+                            : `hospitals-${hospitals.length}`
+                        }
                       >
                         <FormControl>
                           <SelectTrigger className="h-12 border-2 border-gray-200 rounded-lg">
-                            <SelectValue placeholder={hospitalsLoading ? "Loading hospitals..." : "Select a hospital"} />
+                            <SelectValue
+                              placeholder={
+                                hospitalsLoading
+                                  ? "Loading hospitals..."
+                                  : "Select a hospital"
+                              }
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -330,7 +362,10 @@ export default function SignupPage() {
                             </SelectItem>
                           ) : hospitals.length > 0 ? (
                             hospitals.map((hospital) => (
-                              <SelectItem key={hospital.id} value={hospital.name}>
+                              <SelectItem
+                                key={hospital.id}
+                                value={hospital.name}
+                              >
                                 {hospital.name}
                               </SelectItem>
                             ))

@@ -1,5 +1,6 @@
--- Hospital Sustainability Dashboard Database Setup
+-- Hospital Sustainability Dashboard Database Setup (Fixed Version)
 -- Run this in your Supabase SQL Editor
+-- This version handles existing policies gracefully
 
 -- Create tables
 
@@ -102,6 +103,21 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE support_messages ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Admins can view all hospitals" ON hospitals;
+DROP POLICY IF EXISTS "Department heads can view their hospital" ON hospitals;
+DROP POLICY IF EXISTS "Users can manage their own entries" ON entries;
+DROP POLICY IF EXISTS "Admins can view all entries" ON entries;
+DROP POLICY IF EXISTS "Users can manage their hospital's forms" ON forms;
+DROP POLICY IF EXISTS "Admins can view all forms" ON forms;
+DROP POLICY IF EXISTS "Admins can view all department heads" ON department_heads;
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
+DROP POLICY IF EXISTS "Users can view their own notifications" ON notifications;
+DROP POLICY IF EXISTS "Admins can view all notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can view their own support messages" ON support_messages;
+DROP POLICY IF EXISTS "Admins can view all support messages" ON support_messages;
+
 -- RLS Policies
 
 -- Hospitals: Admins can see all, department heads can see their own
@@ -178,11 +194,20 @@ CREATE POLICY "Admins can view all profiles" ON profiles
     )
   );
 
--- Notifications: Users can see their own
+-- Notifications: Users can see their own, admins can see all
 CREATE POLICY "Users can view their own notifications" ON notifications
-  FOR ALL USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid() = user_id);
 
--- Support Messages: Users can see their own, admins can see all
+CREATE POLICY "Admins can view all notifications" ON notifications
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.role = 'admin'
+    )
+  );
+
+-- Support messages: Users can see their own, admins can see all
 CREATE POLICY "Users can view their own support messages" ON support_messages
   FOR SELECT USING (auth.uid() = user_id);
 
@@ -204,16 +229,15 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_support_messages_user ON support_messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_support_messages_status ON support_messages(status);
 
--- Create function to update updated_at timestamp
+-- Create triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
 $$ language 'plpgsql';
 
--- Create triggers for updated_at
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles 
   FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
@@ -231,77 +255,25 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, full_name, role)
-  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), 'department_head');
+  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'full_name', 'department_head');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger for new user registration
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- Insert 8 hospitals
-INSERT INTO hospitals (id, name, location) VALUES
-  (gen_random_uuid(), 'General Hospital North', 'North District'),
-  (gen_random_uuid(), 'General Hospital South', 'South District'), 
-  (gen_random_uuid(), 'General Hospital East', 'East District'),
-  (gen_random_uuid(), 'General Hospital West', 'West District'),
-  (gen_random_uuid(), 'Central Medical Center', 'Downtown'),
-  (gen_random_uuid(), 'Regional Hospital A', 'Region A'),
-  (gen_random_uuid(), 'Regional Hospital B', 'Region B'),
-  (gen_random_uuid(), 'Metropolitan Hospital', 'Metro Area')
-ON CONFLICT DO NOTHING;
-
--- Create sample admin user (you'll need to sign up with this email first)
--- Then run this to make them admin:
-/*
-UPDATE profiles 
-SET role = 'admin', hospital_id = NULL 
-WHERE email = 'admin@hospital.com';
-*/
-
--- Sample data for the last 3 months for each hospital
--- (Run this after creating some test users and hospitals)
-/*
-INSERT INTO entries (hospital_id, user_id, month_year, kwh_usage, water_usage_m3, co2_emissions, submitted, submitted_at) 
-SELECT 
-  h.id as hospital_id,
-  (SELECT id FROM profiles WHERE role = 'department_head' AND hospital_id = h.id LIMIT 1) as user_id,
-  DATE_TRUNC('month', CURRENT_DATE - INTERVAL '2 months') as month_year,
-  ROUND((RANDOM() * 5000 + 8000)::numeric, 2) as kwh_usage,
-  ROUND((RANDOM() * 500 + 600)::numeric, 2) as water_usage_m3,
-  ROUND((RANDOM() * 1000 + 1500)::numeric, 2) as co2_emissions,
-  true as submitted,
-  CURRENT_TIMESTAMP - INTERVAL '2 months' as submitted_at
-FROM hospitals h
-WHERE EXISTS (SELECT 1 FROM profiles WHERE role = 'department_head' AND hospital_id = h.id);
-
-INSERT INTO entries (hospital_id, user_id, month_year, kwh_usage, water_usage_m3, co2_emissions, submitted, submitted_at) 
-SELECT 
-  h.id as hospital_id,
-  (SELECT id FROM profiles WHERE role = 'department_head' AND hospital_id = h.id LIMIT 1) as user_id,
-  DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') as month_year,
-  ROUND((RANDOM() * 5000 + 8000)::numeric, 2) as kwh_usage,
-  ROUND((RANDOM() * 500 + 600)::numeric, 2) as water_usage_m3,
-  ROUND((RANDOM() * 1000 + 1500)::numeric, 2) as co2_emissions,
-  true as submitted,
-  CURRENT_TIMESTAMP - INTERVAL '1 month' as submitted_at
-FROM hospitals h
-WHERE EXISTS (SELECT 1 FROM profiles WHERE role = 'department_head' AND hospital_id = h.id);
-
--- Current month entries (some submitted, some not)
-INSERT INTO entries (hospital_id, user_id, month_year, kwh_usage, water_usage_m3, co2_emissions, submitted, submitted_at) 
-SELECT 
-  h.id as hospital_id,
-  (SELECT id FROM profiles WHERE role = 'department_head' AND hospital_id = h.id LIMIT 1) as user_id,
-  DATE_TRUNC('month', CURRENT_DATE) as month_year,
-  ROUND((RANDOM() * 5000 + 8000)::numeric, 2) as kwh_usage,
-  ROUND((RANDOM() * 500 + 600)::numeric, 2) as water_usage_m3,
-  ROUND((RANDOM() * 1000 + 1500)::numeric, 2) as co2_emissions,
-  CASE WHEN RANDOM() > 0.5 THEN true ELSE false END as submitted,
-  CASE WHEN RANDOM() > 0.5 THEN CURRENT_TIMESTAMP ELSE NULL END as submitted_at
-FROM hospitals h
-WHERE EXISTS (SELECT 1 FROM profiles WHERE role = 'department_head' AND hospital_id = h.id)
-LIMIT 8;
-*/
+-- Insert sample data (optional - uncomment if you want sample data)
+-- INSERT INTO hospitals (name, location) VALUES 
+--   ('Central Hospital', 'Lisbon'),
+--   ('North Medical Center', 'Porto'),
+--   ('South General', 'Faro'),
+--   ('East Regional', 'Coimbra'),
+--   ('West Community', 'Braga'),
+--   ('Coastal Medical', 'Aveiro'),
+--   ('Mountain View', 'Guarda'),
+--   ('Riverside Health', 'Viseu')
+-- ON CONFLICT DO NOTHING; 

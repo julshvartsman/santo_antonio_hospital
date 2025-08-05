@@ -50,35 +50,24 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    // Clear any invalid session data on login page load
-    const clearInvalidSession = async () => {
+    // Aggressively clear any corrupted session data
+    const clearCorruptedSession = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
-          // Check if session is valid by trying to get user
-          const {
-            data: { user },
-            error,
-          } = await supabase.auth.getUser();
-          if (error || !user) {
-            console.log("Invalid session detected, clearing...");
-            await supabase.auth.signOut();
-          }
-        }
+        console.log("Clearing any corrupted session data...");
+        // Force clear all local storage
+        localStorage.removeItem("cityx-hospital-auth-token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("user_cache_time");
+
+        // Force sign out to clear any server-side session
+        await supabase.auth.signOut();
+        console.log("Session cleared successfully");
       } catch (error) {
-        console.error("Error checking session validity:", error);
-        // If there's an error, clear the session anyway
-        try {
-          await supabase.auth.signOut();
-        } catch (signOutError) {
-          console.error("Error signing out:", signOutError);
-        }
+        console.error("Error clearing session:", error);
       }
     };
 
-    clearInvalidSession();
+    clearCorruptedSession();
   }, []);
 
   const onLoginSubmit = async (data: LoginFormData) => {
@@ -88,17 +77,28 @@ export default function LoginPage() {
         email: data.email,
         password: data.password,
       };
+
+      console.log("=== LOGIN DEBUG START ===");
       const user = await login(credentials);
-      // Redirect based on user role
+      console.log("Login successful, user:", user);
+      console.log("User role:", user.role);
+      console.log("User hospital_id:", user.hospital_id);
+
+      // Enhanced redirect logic with better debugging
       if (user.role === "admin" || user.role === "super_admin") {
+        console.log("Redirecting to admin dashboard");
         router.push("/admin/dashboard");
-      // } else if (user.role === "department_head") {
-      //   router.push("/department/dashboard");
-      } else {
-        // Fallback for any other roles - default to department dashboard
+      } else if (user.role === "department_head") {
+        console.log("Redirecting to department dashboard");
         router.push("/department/dashboard");
+      } else {
+        console.log("Unknown role, defaulting to debug dashboard");
+        router.push("/debug-dashboard");
       }
+
+      console.log("=== LOGIN DEBUG END ===");
     } catch (err) {
+      console.error("Login error:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
     }
   };
@@ -107,12 +107,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left side - Logo */}
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="max-w-md">
-          <Logo size="lg" className="mb-8" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <div className="max-w-md text-center">
+          <Logo size="2xl" className="mb-8" />
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
             Hospital Sustainability Dashboard
           </h2>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-600">
             Manage and monitor sustainability metrics across all hospital
             departments
           </p>

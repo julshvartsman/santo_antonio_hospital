@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { Hospital, DepartmentHead, Entry } from "@/lib/supabaseClient";
 
@@ -8,16 +8,28 @@ export interface HospitalWithMetrics extends Hospital {
   current_month_totals: {
     kwh_usage: number;
     water_usage_m3: number;
+    waste_type1: number;
+    waste_type2: number;
+    waste_type3: number;
+    waste_type4: number;
     co2_emissions: number;
   };
   previous_month_totals: {
     kwh_usage: number;
     water_usage_m3: number;
+    waste_type1: number;
+    waste_type2: number;
+    waste_type3: number;
+    waste_type4: number;
     co2_emissions: number;
   };
   percentage_changes: {
     kwh: number;
     water: number;
+    waste_type1: number;
+    waste_type2: number;
+    waste_type3: number;
+    waste_type4: number;
     co2: number;
   };
   isOutlier: boolean;
@@ -30,16 +42,32 @@ export interface HospitalWithMetrics extends Hospital {
 export interface CumulativeMetrics {
   total_kwh: number;
   total_water_m3: number;
+  total_waste_type1: number;
+  total_waste_type2: number;
+  total_waste_type3: number;
+  total_waste_type4: number;
   total_co2: number;
   previous_total_kwh: number;
   previous_total_water_m3: number;
+  previous_total_waste_type1: number;
+  previous_total_waste_type2: number;
+  previous_total_waste_type3: number;
+  previous_total_waste_type4: number;
   previous_total_co2: number;
   overall_changes: {
     kwh: number;
     water: number;
+    waste_type1: number;
+    waste_type2: number;
+    waste_type3: number;
+    waste_type4: number;
     co2: number;
   };
 }
+
+// Cache for storing fetched data
+const dataCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 export function useAllDepartments() {
   const [hospitals, setHospitals] = useState<HospitalWithMetrics[]>([]);
@@ -77,34 +105,55 @@ export function useAllDepartments() {
     ).padStart(2, "0")}-01`;
   };
 
-  useEffect(() => {
-    fetchAllDepartmentsData();
-  }, []);
+  // Check if cached data is still valid
+  const getCachedData = (key: string) => {
+    const cached = dataCache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+    return null;
+  };
 
-  const fetchAllDepartmentsData = async () => {
+  // Set cached data with timestamp
+  const setCachedData = (key: string, data: any) => {
+    dataCache.set(key, { data, timestamp: Date.now() });
+  };
+
+  const fetchAllDepartmentsData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       const currentMonth = getCurrentMonthKey();
       const previousMonth = getPreviousMonthKey();
+      const cacheKey = `departments_${currentMonth}_${previousMonth}`;
 
-      // Fetch all hospitals with their department heads
-      const { data: hospitalsData, error: hospitalsError } =
-        await supabase.from("hospitals").select(`
+      // Check cache first
+      const cachedData = getCachedData(cacheKey);
+      if (cachedData) {
+        setHospitals(cachedData.hospitals);
+        setCumulativeMetrics(cachedData.cumulativeMetrics);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch data in parallel for better performance
+      const [hospitalsResponse, entriesResponse] = await Promise.all([
+        supabase.from("hospitals").select(`
           *,
           department_heads!hospital_id (*)
-        `);
+        `),
+        supabase
+          .from("entries")
+          .select("*")
+          .in("month_year", [currentMonth, previousMonth]),
+      ]);
 
-      if (hospitalsError) throw hospitalsError;
+      if (hospitalsResponse.error) throw hospitalsResponse.error;
+      if (entriesResponse.error) throw entriesResponse.error;
 
-      // Fetch all entries for current and previous month
-      const { data: entriesData, error: entriesError } = await supabase
-        .from("entries")
-        .select("*")
-        .in("month_year", [currentMonth, previousMonth]);
-
-      if (entriesError) throw entriesError;
+      const hospitalsData = hospitalsResponse.data;
+      const entriesData = entriesResponse.data;
 
       // Process data for each hospital
       const processedHospitals: HospitalWithMetrics[] = hospitalsData.map(
@@ -212,6 +261,22 @@ export function useAllDepartments() {
           (sum, h) => sum + h.current_month_totals.water_usage_m3,
           0
         ),
+        total_waste_type1: processedHospitals.reduce(
+          (sum, h) => sum + h.current_month_totals.waste_type1,
+          0
+        ),
+        total_waste_type2: processedHospitals.reduce(
+          (sum, h) => sum + h.current_month_totals.waste_type2,
+          0
+        ),
+        total_waste_type3: processedHospitals.reduce(
+          (sum, h) => sum + h.current_month_totals.waste_type3,
+          0
+        ),
+        total_waste_type4: processedHospitals.reduce(
+          (sum, h) => sum + h.current_month_totals.waste_type4,
+          0
+        ),
         total_co2: processedHospitals.reduce(
           (sum, h) => sum + h.current_month_totals.co2_emissions,
           0
@@ -224,6 +289,22 @@ export function useAllDepartments() {
           (sum, h) => sum + h.previous_month_totals.water_usage_m3,
           0
         ),
+        previous_total_waste_type1: processedHospitals.reduce(
+          (sum, h) => sum + h.previous_month_totals.waste_type1,
+          0
+        ),
+        previous_total_waste_type2: processedHospitals.reduce(
+          (sum, h) => sum + h.previous_month_totals.waste_type2,
+          0
+        ),
+        previous_total_waste_type3: processedHospitals.reduce(
+          (sum, h) => sum + h.previous_month_totals.waste_type3,
+          0
+        ),
+        previous_total_waste_type4: processedHospitals.reduce(
+          (sum, h) => sum + h.previous_month_totals.waste_type4,
+          0
+        ),
         previous_total_co2: processedHospitals.reduce(
           (sum, h) => sum + h.previous_month_totals.co2_emissions,
           0
@@ -231,6 +312,10 @@ export function useAllDepartments() {
         overall_changes: {
           kwh: 0, // Will be calculated below
           water: 0,
+          waste_type1: 0,
+          waste_type2: 0,
+          waste_type3: 0,
+          waste_type4: 0,
           co2: 0,
         },
       };
@@ -250,6 +335,34 @@ export function useAllDepartments() {
                 cumulative.previous_total_water_m3) *
               100
             : 0,
+        waste_type1:
+          cumulative.previous_total_waste_type1 > 0
+            ? ((cumulative.total_waste_type1 -
+                cumulative.previous_total_waste_type1) /
+                cumulative.previous_total_waste_type1) *
+              100
+            : 0,
+        waste_type2:
+          cumulative.previous_total_waste_type2 > 0
+            ? ((cumulative.total_waste_type2 -
+                cumulative.previous_total_waste_type2) /
+                cumulative.previous_total_waste_type2) *
+              100
+            : 0,
+        waste_type3:
+          cumulative.previous_total_waste_type3 > 0
+            ? ((cumulative.total_waste_type3 -
+                cumulative.previous_total_waste_type3) /
+                cumulative.previous_total_waste_type3) *
+              100
+            : 0,
+        waste_type4:
+          cumulative.previous_total_waste_type4 > 0
+            ? ((cumulative.total_waste_type4 -
+                cumulative.previous_total_waste_type4) /
+                cumulative.previous_total_waste_type4) *
+              100
+            : 0,
         co2:
           cumulative.previous_total_co2 > 0
             ? ((cumulative.total_co2 - cumulative.previous_total_co2) /
@@ -257,6 +370,12 @@ export function useAllDepartments() {
               100
             : 0,
       };
+
+      // Cache the results
+      setCachedData(cacheKey, {
+        hospitals: processedHospitals,
+        cumulativeMetrics: cumulative,
+      });
 
       setHospitals(processedHospitals);
       setCumulativeMetrics(cumulative);
@@ -266,7 +385,11 @@ export function useAllDepartments() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAllDepartmentsData();
+  }, [fetchAllDepartmentsData]);
 
   const sendReminderToHead = async (
     departmentHeadId: string,

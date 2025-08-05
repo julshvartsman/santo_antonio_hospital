@@ -21,6 +21,7 @@ import {
   Download,
   Activity,
   ArrowRight,
+  FileText,
 } from "lucide-react";
 
 // Badge component
@@ -143,27 +144,54 @@ export default function DepartmentDashboard() {
         <p className="text-gray-600 mt-2">{language.t("dashboard.metrics")}</p>
       </div>
 
-      {/* Big Submit Button */}
-      <Card className="border-2 border-blue-200 bg-blue-50">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Submit This Month's Data
-            </h2>
-            <p className="text-gray-600">
-              Enter your sustainability metrics for {currentMonthName}
-            </p>
-            <Button
-              size="lg"
-              onClick={() => router.push("/department/data-entry")}
-              className="flex items-center space-x-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <ArrowRight className="h-5 w-5" />
-              <span>Go to Data Entry</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Data Entry Card */}
+        <Card className="border-2 border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <FileText className="h-12 w-12 text-blue-600 mx-auto" />
+              <h2 className="text-xl font-semibold text-gray-900">
+                Data Entry & Reports
+              </h2>
+              <p className="text-gray-600">
+                Enter monthly metrics and view reports
+              </p>
+              <Button
+                size="lg"
+                onClick={() => router.push("/department/data-entry")}
+                className="flex items-center space-x-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <ArrowRight className="h-5 w-5" />
+                <span>Go to Data Entry</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Export Data Card */}
+        <Card className="border-2 border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <Download className="h-12 w-12 text-green-600 mx-auto" />
+              <h2 className="text-xl font-semibold text-gray-900">
+                Export Data
+              </h2>
+              <p className="text-gray-600">
+                Download your historical data for analysis
+              </p>
+              <Button
+                size="lg"
+                onClick={exportToCSV}
+                className="flex items-center space-x-2 mx-auto bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Download className="h-5 w-5" />
+                <span>Export CSV</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Submission Status Banner */}
       <div>
@@ -189,7 +217,14 @@ export default function DepartmentDashboard() {
             <Clock className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800">
               <strong>Submission Pending</strong> - You haven't submitted your
-              metrics for {currentMonthName} yet.
+              metrics for {currentMonthName} yet.{" "}
+              <Button
+                variant="link"
+                className="p-0 h-auto text-yellow-800 underline"
+                onClick={() => router.push("/department/data-entry")}
+              >
+                Click here to submit now
+              </Button>
             </AlertDescription>
           </Alert>
         )}
@@ -235,35 +270,60 @@ export default function DepartmentDashboard() {
         </CardContent>
       </Card>
 
-      {/* Export Data */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Data Export</CardTitle>
-          <CardDescription>
-            Export your historical data for analysis
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex space-x-3">
-            <Button
-              variant="outline"
-              onClick={exportToCSV}
-              className="flex items-center space-x-2"
-            >
-              <Download className="h-4 w-4" />
-              <span>Export CSV</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={refresh}
-              className="flex items-center space-x-2"
-            >
-              <Activity className="h-4 w-4" />
-              <span>Refresh Data</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Total Entries
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data.historical_entries.length}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Monthly reports submitted
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Average Energy Usage
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.round(
+                sparklineData.reduce((a, b) => a + b, 0) /
+                  sparklineData.length || 0
+              ).toLocaleString()}{" "}
+              kWh
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Monthly average</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Last Updated
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data.current_month_entry?.updated_at
+                ? new Date(
+                    data.current_month_entry.updated_at
+                  ).toLocaleDateString()
+                : "Never"}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Last data entry</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

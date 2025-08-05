@@ -7,7 +7,7 @@ You now have a fully functional **React 18 + Next.js 14** hospital sustainabilit
 ### ✅ Features Implemented:
 
 1. **Admin Dashboard** (`/admin/dashboard`) - View all 8 hospitals, metrics, trends
-2. **Department Dashboard** (`/department/dashboard`) - Individual hospital data entry
+2. **Department Dashboard** (`/department/dashboard`) - Individual hospital data entry and reports
 3. **Supabase Integration** - Authentication, database, RLS
 4. **TypeScript** throughout
 5. **Modern UI Components** with Tailwind CSS
@@ -75,10 +75,19 @@ If inputs don't work, we need to fix this first before proceeding.
 
 **Department Dashboard:** `/department/dashboard`
 
+- Quick access to data entry and reports
+- View submission status
+- Export data
+- See energy trends
+
+**Department Data Entry:** `/department/data-entry`
+
+- **Combined data entry and reports** in one interface
+- Two tabs: "Data Entry" and "Reports & Analytics"
 - Enter monthly metrics
-- Save drafts or submit final
+- View historical data and trends
 - Export CSV data
-- View 12-month trends
+- View 12-month energy trends
 
 ---
 
@@ -87,7 +96,7 @@ If inputs don't work, we need to fix this first before proceeding.
 1. **Fix input fields** (if needed) at `/test-form`
 2. **Sign up as admin** → access `/admin/dashboard`
 3. **Sign up as department heads** → access `/department/dashboard`
-4. **Enter sample data** through department dashboards
+4. **Enter sample data** through department data entry
 5. **View aggregated data** in admin dashboard
 
 ---
@@ -99,6 +108,7 @@ cityxhospital/
 ├── app/
 │   ├── admin/dashboard/page.tsx         # Admin dashboard
 │   ├── department/dashboard/page.tsx    # Department dashboard
+│   ├── department/data-entry/page.tsx   # Combined data entry & reports
 │   └── test-form/page.tsx              # Input testing
 ├── hooks/
 │   ├── useAllDepartments.ts            # Admin data hook
@@ -106,7 +116,11 @@ cityxhospital/
 ├── lib/
 │   └── supabaseClient.ts               # Database types & setup
 ├── components/
-│   └── Navigation.tsx                  # Navigation bar
+│   ├── Navigation.tsx                  # Navigation bar
+│   ├── layout/
+│   │   └── DepartmentSidebar.tsx       # Updated sidebar (no reports tab)
+│   └── ui/
+│       └── tabs.tsx                    # New tabs component
 ├── database-setup.sql                  # Complete database schema
 └── README-SETUP.md                     # This file
 ```
@@ -118,9 +132,29 @@ cityxhospital/
 ✅ **Database**: Configured with proper schema  
 ✅ **Authentication**: Role-based access (admin/department_head)  
 ✅ **Admin Dashboard**: Complete with metrics, trends, outliers  
-✅ **Department Dashboard**: Data entry, trends, CSV export  
-✅ **Navigation**: Role-based routing  
+✅ **Department Dashboard**: Updated with quick actions  
+✅ **Data Entry & Reports**: Combined into single page with tabs  
+✅ **Navigation**: Updated sidebar (reports tab removed)  
 ❓ **Input Fields**: Need testing at `/test-form`
+
+---
+
+## 🎨 **New Department Interface**
+
+### **Combined Data Entry & Reports Page**
+
+- **Two-tab interface**: Data Entry + Reports & Analytics
+- **Data Entry Tab**: View and edit monthly forms
+- **Reports Tab**: Energy trends, analytics, and export functionality
+- **Quick Action Card**: Easy access to create new entries
+- **Real-time Data**: Live updates from database
+
+### **Updated Dashboard**
+
+- **Quick Action Cards**: Direct access to data entry and export
+- **Submission Status**: Clear indication of current month status
+- **Energy Trends**: Visual representation of 12-month data
+- **Quick Stats**: Total entries, average usage, last updated
 
 ---
 
@@ -132,3 +166,5 @@ cityxhospital/
 4. **Test full workflow** from data entry to admin reporting
 
 Your hospital sustainability dashboard is ready! 🎉
+
+**Note**: The reports functionality has been successfully combined with data entry for a more streamlined user experience.

@@ -64,7 +64,7 @@ export const useFormById = (formId: string) => {
       }
 
       // Get the corresponding entry data
-      const monthYear = `${year}-${month.toString().padStart(2, '0')}-01`;
+      const monthYear = `${year}-${month.toString().padStart(2, "0")}-01`;
       const { data: entryData, error: entryError } = await supabase
         .from("entries")
         .select("*")
@@ -78,15 +78,15 @@ export const useFormById = (formId: string) => {
 
       // Create or update the form directory entry
       if (!formData) {
-        const { error: createFormError } = await supabase
-          .from("forms")
-          .insert([{
+        const { error: createFormError } = await supabase.from("forms").insert([
+          {
             id: formId,
             hospital_id: hospitalId,
             month,
             year,
             submitted: false,
-          }]);
+          },
+        ]);
 
         if (createFormError) {
           throw createFormError;
@@ -99,16 +99,17 @@ export const useFormById = (formId: string) => {
         hospital_id: hospitalId,
         month,
         year,
-        data: entryData ? {
-          energy_usage: entryData.kwh_usage,
-          water_usage: entryData.water_usage_m3,
-          co2_emissions: entryData.co2_emissions,
-          waste_generated: entryData.waste_generated,
-          recycling_rate: entryData.recycling_rate,
-          renewable_energy: entryData.renewable_energy_usage,
-          paper_usage: entryData.paper_usage,
-          chemical_usage: entryData.chemical_usage,
-        } : {},
+        data: entryData
+          ? {
+              kwh_usage: entryData.kwh_usage,
+              water_usage_m3: entryData.water_usage_m3,
+              waste_type1: entryData.waste_type1,
+              waste_type2: entryData.waste_type2,
+              waste_type3: entryData.waste_type3,
+              waste_type4: entryData.waste_type4,
+              co2_emissions: entryData.co2_emissions,
+            }
+          : {},
         submitted: formData?.submitted || entryData?.submitted || false,
         submitted_at: formData?.submitted_at || entryData?.submitted_at,
         created_at: formData?.created_at,
@@ -130,7 +131,9 @@ export const useFormById = (formId: string) => {
       setSaving(true);
       setError(null);
 
-      const monthYear = `${form.year}-${form.month.toString().padStart(2, '0')}-01`;
+      const monthYear = `${form.year}-${form.month
+        .toString()
+        .padStart(2, "0")}-01`;
 
       // Check if entry already exists
       const { data: existingEntry, error: checkError } = await supabase
@@ -144,14 +147,13 @@ export const useFormById = (formId: string) => {
         hospital_id: form.hospital_id,
         user_id: user.id,
         month_year: monthYear,
-        kwh_usage: data.energy_usage || 0,
-        water_usage_m3: data.water_usage || 0,
+        kwh_usage: data.kwh_usage || 0,
+        water_usage_m3: data.water_usage_m3 || 0,
+        waste_type1: data.waste_type1 || 0,
+        waste_type2: data.waste_type2 || 0,
+        waste_type3: data.waste_type3 || 0,
+        waste_type4: data.waste_type4 || 0,
         co2_emissions: data.co2_emissions || 0,
-        waste_generated: data.waste_generated || 0,
-        recycling_rate: data.recycling_rate || 0,
-        renewable_energy_usage: data.renewable_energy || 0,
-        paper_usage: data.paper_usage || 0,
-        chemical_usage: data.chemical_usage || 0,
         submitted: false,
         updated_at: new Date().toISOString(),
       };
@@ -201,7 +203,9 @@ export const useFormById = (formId: string) => {
       setSaving(true);
       setError(null);
 
-      const monthYear = `${form.year}-${form.month.toString().padStart(2, '0')}-01`;
+      const monthYear = `${form.year}-${form.month
+        .toString()
+        .padStart(2, "0")}-01`;
 
       // Update forms table with submission status
       const { error: updateFormError } = await supabase
@@ -222,14 +226,13 @@ export const useFormById = (formId: string) => {
         hospital_id: form.hospital_id,
         user_id: user.id,
         month_year: monthYear,
-        kwh_usage: data.energy_usage || 0,
-        water_usage_m3: data.water_usage || 0,
+        kwh_usage: data.kwh_usage || 0,
+        water_usage_m3: data.water_usage_m3 || 0,
+        waste_type1: data.waste_type1 || 0,
+        waste_type2: data.waste_type2 || 0,
+        waste_type3: data.waste_type3 || 0,
+        waste_type4: data.waste_type4 || 0,
         co2_emissions: data.co2_emissions || 0,
-        waste_generated: data.waste_generated || 0,
-        recycling_rate: data.recycling_rate || 0,
-        renewable_energy_usage: data.renewable_energy || 0,
-        paper_usage: data.paper_usage || 0,
-        chemical_usage: data.chemical_usage || 0,
         submitted: true,
         submitted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

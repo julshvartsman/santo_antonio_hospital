@@ -15,6 +15,7 @@ import {
   CogIcon,
   HelpCircle,
   LogOut,
+  MessageCircle,
 } from "lucide-react";
 
 const menu = [
@@ -22,6 +23,11 @@ const menu = [
   { href: "/admin/data-analysis", label: "menu.dataAnalysis", icon: BarChart3 },
   { href: "/admin/file-upload", label: "menu.fileUpload", icon: Upload },
   { href: "/admin/notifications", label: "menu.notifications", icon: BellIcon },
+  {
+    href: "/admin/support-messages",
+    label: "menu.supportMessages",
+    icon: MessageCircle,
+  },
 ];
 
 const others = [
