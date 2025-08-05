@@ -131,6 +131,12 @@ export const useFormById = (formId: string) => {
       setSaving(true);
       setError(null);
 
+      // Get current user ID from Supabase auth
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
+        throw new Error("Authentication error");
+      }
+
       const monthYear = `${form.year}-${form.month
         .toString()
         .padStart(2, "0")}-01`;
@@ -145,7 +151,7 @@ export const useFormById = (formId: string) => {
 
       const entryData = {
         hospital_id: form.hospital_id,
-        user_id: user.id,
+        user_id: authUser.id,
         month_year: monthYear,
         kwh_usage: data.kwh_usage || 0,
         water_usage_m3: data.water_usage_m3 || 0,
@@ -203,6 +209,12 @@ export const useFormById = (formId: string) => {
       setSaving(true);
       setError(null);
 
+      // Get current user ID from Supabase auth
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
+        throw new Error("Authentication error");
+      }
+
       const monthYear = `${form.year}-${form.month
         .toString()
         .padStart(2, "0")}-01`;
@@ -224,7 +236,7 @@ export const useFormById = (formId: string) => {
       // Update entries table with all the data
       const entryData = {
         hospital_id: form.hospital_id,
-        user_id: user.id,
+        user_id: authUser.id,
         month_year: monthYear,
         kwh_usage: data.kwh_usage || 0,
         water_usage_m3: data.water_usage_m3 || 0,
@@ -267,7 +279,12 @@ export const useFormById = (formId: string) => {
 
       if (entryResult.error) {
         console.error("Error syncing to entries table:", entryResult.error);
+        console.error("Entry result:", entryResult);
+        console.error("Entry data that was sent:", entryData);
+        console.error("Existing entry found:", existingEntry);
         // Don't throw error here - forms table was updated successfully
+      } else {
+        console.log("Successfully synced to entries table:", entryResult.data);
       }
 
       setForm((prev) =>
