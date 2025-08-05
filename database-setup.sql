@@ -38,6 +38,19 @@ CREATE TABLE IF NOT EXISTS entries (
   UNIQUE(hospital_id, month_year)
 );
 
+-- Forms table (new dynamic forms system)
+CREATE TABLE IF NOT EXISTS forms (
+  id TEXT PRIMARY KEY, -- Format: '${hospitalId}-${MM}-${YYYY}'
+  hospital_id UUID REFERENCES hospitals(id) ON DELETE CASCADE,
+  month INT NOT NULL,
+  year INT NOT NULL,
+  data JSONB DEFAULT '{}', -- map of metricKey → numeric value
+  submitted BOOLEAN DEFAULT FALSE,
+  submitted_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Profiles table (extend auth.users)
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -65,6 +78,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 ALTER TABLE hospitals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE department_heads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
@@ -102,6 +116,25 @@ CREATE POLICY "Admins can view all entries" ON entries
     )
   );
 
+-- Forms: Users can manage their own hospital's forms, admins can see all
+CREATE POLICY "Users can manage their hospital's forms" ON forms
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.hospital_id = forms.hospital_id
+    )
+  );
+
+CREATE POLICY "Admins can view all forms" ON forms
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.role = 'admin'
+    )
+  );
+
 -- Department Heads: Admins can see all
 CREATE POLICY "Admins can view all department heads" ON department_heads
   FOR SELECT USING (
@@ -112,22 +145,31 @@ CREATE POLICY "Admins can view all department heads" ON department_heads
     )
   );
 
--- Profiles: Users can see all profiles (for admin dashboard), update their own
-CREATE POLICY "Users can view all profiles" ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+-- Profiles: Users can see their own, admins can see all
+CREATE POLICY "Users can view their own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Admins can view all profiles" ON profiles
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE profiles.id = auth.uid() 
+      AND profiles.role = 'admin'
+    )
+  );
 
 -- Notifications: Users can see their own
-CREATE POLICY "Users can view own notifications" ON notifications 
-  FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update own notifications" ON notifications 
-  FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "System can insert notifications" ON notifications 
-  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Users can view their own notifications" ON notifications
+  FOR ALL USING (auth.uid() = user_id);
 
--- Functions and Triggers
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_entries_hospital_month ON entries(hospital_id, month_year);
+CREATE INDEX IF NOT EXISTS idx_entries_user ON entries(user_id);
+CREATE INDEX IF NOT EXISTS idx_forms_hospital_month_year ON forms(hospital_id, month, year);
+CREATE INDEX IF NOT EXISTS idx_profiles_hospital ON profiles(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 
--- Function to update updated_at timestamp
+-- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -136,40 +178,27 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Triggers for updated_at
+-- Create triggers for updated_at
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles 
   FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 CREATE TRIGGER update_entries_updated_at BEFORE UPDATE ON entries 
   FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
--- Function to create user profile on signup
+CREATE TRIGGER update_forms_updated_at BEFORE UPDATE ON forms 
+  FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- Create function to handle new user registration
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
-DECLARE
-  hospital_id UUID;
 BEGIN
-  -- Try to find hospital by name from user metadata
-  IF NEW.raw_user_meta_data->>'hospital' IS NOT NULL THEN
-    SELECT id INTO hospital_id 
-    FROM hospitals 
-    WHERE name = NEW.raw_user_meta_data->>'hospital' 
-    LIMIT 1;
-  END IF;
-
-  INSERT INTO public.profiles (id, email, full_name, role, hospital_id)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'department_head'),
-    hospital_id
-  );
+  INSERT INTO public.profiles (id, email, full_name, role)
+  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), 'department_head');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to automatically create user profile
+-- Create trigger for new user registration
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();

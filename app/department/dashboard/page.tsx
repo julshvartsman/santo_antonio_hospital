@@ -10,7 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapse } from "@/components/ui/collapse";
 import { useMyEntries } from "@/hooks/useMyEntries";
+import { useAuth } from "@/hooks/useAuth";
+import { DynamicForm } from "@/components/forms/DynamicForm";
 import { useApp } from "@/components/providers/AppProvider";
 import {
   CheckCircle,
@@ -18,6 +21,8 @@ import {
   AlertTriangle,
   Download,
   Activity,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 // Badge component
@@ -91,7 +96,19 @@ const Sparkline = ({
 
 export default function DepartmentDashboard() {
   const { data, loading, error, refresh, exportToCSV } = useMyEntries();
+  const { user } = useAuth();
   const { language } = useApp();
+  const [showForm, setShowForm] = useState(false);
+
+  // Get current month and year for form ID
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const formId = user?.hospital_id
+    ? `${user.hospital_id}-${currentMonth
+        .toString()
+        .padStart(2, "0")}-${currentYear}`
+    : "";
 
   if (loading) {
     return (
@@ -120,7 +137,7 @@ export default function DepartmentDashboard() {
 
   if (!data) return null;
 
-  const currentMonth = new Date().toLocaleString("default", {
+  const currentMonthName = new Date().toLocaleString("default", {
     month: "long",
     year: "numeric",
   });
@@ -138,6 +155,68 @@ export default function DepartmentDashboard() {
         <p className="text-gray-600 mt-2">{language.t("dashboard.metrics")}</p>
       </div>
 
+      {/* Big Submit Button */}
+      <Card className="border-2 border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="text-center space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Submit This Month's Data
+            </h2>
+            <p className="text-gray-600">
+              Enter your sustainability metrics for {currentMonthName}
+            </p>
+            <Button
+              size="lg"
+              onClick={() => setShowForm(!showForm)}
+              className="flex items-center space-x-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {showForm ? (
+                <>
+                  <ChevronUp className="h-5 w-5" />
+                  <span>Hide Form</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-5 w-5" />
+                  <span>Submit This Month's Data</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Collapsible Form Slot */}
+      <Collapse isOpen={showForm}>
+        {formId && user?.hospital_id && (
+          <DynamicForm
+            formId={formId}
+            hospitalId={user.hospital_id}
+            month={currentMonth}
+            year={currentYear}
+            initialData={
+              data.current_month_entry
+                ? {
+                    energy_usage: data.current_month_entry.kwh_usage || 0,
+                    water_usage: data.current_month_entry.water_usage_m3 || 0,
+                    co2_emissions: data.current_month_entry.co2_emissions || 0,
+                  }
+                : {}
+            }
+            onSave={async (formData) => {
+              // Handle save logic here
+              console.log("Saving form data:", formData);
+            }}
+            onSubmit={async (formData) => {
+              // Handle submit logic here
+              console.log("Submitting form data:", formData);
+              setShowForm(false);
+            }}
+            isSubmitted={data.submission_status.submitted}
+          />
+        )}
+      </Collapse>
+
       {/* Submission Status Banner */}
       <div>
         {data.submission_status.submitted ? (
@@ -145,7 +224,7 @@ export default function DepartmentDashboard() {
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
               <strong>Metrics Submitted</strong> - You submitted your metrics
-              for {currentMonth} on{" "}
+              for {currentMonthName} on{" "}
               {data.submission_status.submitted_at &&
                 new Date(
                   data.submission_status.submitted_at
@@ -162,7 +241,7 @@ export default function DepartmentDashboard() {
             <Clock className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800">
               <strong>Submission Pending</strong> - You haven't submitted your
-              metrics for {currentMonth} yet.
+              metrics for {currentMonthName} yet.
             </AlertDescription>
           </Alert>
         )}
