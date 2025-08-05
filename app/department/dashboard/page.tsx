@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -10,10 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Collapse } from "@/components/ui/collapse";
 import { useMyEntries } from "@/hooks/useMyEntries";
 import { useAuth } from "@/hooks/useAuth";
-import { DynamicForm } from "@/components/forms/DynamicForm";
 import { useApp } from "@/components/providers/AppProvider";
 import {
   CheckCircle,
@@ -21,8 +20,7 @@ import {
   AlertTriangle,
   Download,
   Activity,
-  ChevronDown,
-  ChevronUp,
+  ArrowRight,
 } from "lucide-react";
 
 // Badge component
@@ -98,17 +96,7 @@ export default function DepartmentDashboard() {
   const { data, loading, error, refresh, exportToCSV } = useMyEntries();
   const { user } = useAuth();
   const { language } = useApp();
-  const [showForm, setShowForm] = useState(false);
-
-  // Get current month and year for form ID
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
-  const formId = user?.hospital_id
-    ? `${user.hospital_id}-${currentMonth
-        .toString()
-        .padStart(2, "0")}-${currentYear}`
-    : "";
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -167,55 +155,15 @@ export default function DepartmentDashboard() {
             </p>
             <Button
               size="lg"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => router.push("/department/data-entry")}
               className="flex items-center space-x-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {showForm ? (
-                <>
-                  <ChevronUp className="h-5 w-5" />
-                  <span>Hide Form</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-5 w-5" />
-                  <span>Submit This Month's Data</span>
-                </>
-              )}
+              <ArrowRight className="h-5 w-5" />
+              <span>Go to Data Entry</span>
             </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Collapsible Form Slot */}
-      <Collapse isOpen={showForm}>
-        {formId && user?.hospital_id && (
-          <DynamicForm
-            formId={formId}
-            hospitalId={user.hospital_id}
-            month={currentMonth}
-            year={currentYear}
-            initialData={
-              data.current_month_entry
-                ? {
-                    energy_usage: data.current_month_entry.kwh_usage || 0,
-                    water_usage: data.current_month_entry.water_usage_m3 || 0,
-                    co2_emissions: data.current_month_entry.co2_emissions || 0,
-                  }
-                : {}
-            }
-            onSave={async (formData) => {
-              // Handle save logic here
-              console.log("Saving form data:", formData);
-            }}
-            onSubmit={async (formData) => {
-              // Handle submit logic here
-              console.log("Submitting form data:", formData);
-              setShowForm(false);
-            }}
-            isSubmitted={data.submission_status.submitted}
-          />
-        )}
-      </Collapse>
 
       {/* Submission Status Banner */}
       <div>
