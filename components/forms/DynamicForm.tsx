@@ -60,7 +60,7 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
   },
   {
     key: "renewable_energy",
-    label: "Renewable Energy Usage",
+    label: "Gas Usage",
     unit: "kWh",
     type: "number",
     required: false,
