@@ -165,10 +165,10 @@ export function useMyEntries() {
   const submitFinal = async (formData: {
     kwh_usage: number;
     water_usage_m3: number;
-    waste_type1: number;
-    waste_type2: number;
-    waste_type3: number;
-    waste_type4: number;
+    type1: number;
+    type2: number;
+    type3: number;
+    type4: number;
     co2_emissions?: number;
   }) => {
     if (!user || !data)
@@ -182,10 +182,10 @@ export function useMyEntries() {
         formData.co2_emissions ||
         formData.kwh_usage * 0.5 +
           formData.water_usage_m3 * 0.1 +
-          formData.waste_type1 * 0.8 +
-          formData.waste_type2 * 0.7 +
-          formData.waste_type3 * 0.6 +
-          formData.waste_type4 * 0.5;
+          formData.type1 * 0.8 +
+          formData.type2 * 0.7 +
+          formData.type3 * 0.6 +
+          formData.type4 * 0.5;
 
       const entryData = {
         hospital_id: user.hospital_id!,
@@ -193,10 +193,10 @@ export function useMyEntries() {
         month_year: currentMonth,
         kwh_usage: formData.kwh_usage,
         water_usage_m3: formData.water_usage_m3,
-        waste_type1: formData.waste_type1,
-        waste_type2: formData.waste_type2,
-        waste_type3: formData.waste_type3,
-        waste_type4: formData.waste_type4,
+        type1: formData.type1,
+        type2: formData.type2,
+        type3: formData.type3,
+        type4: formData.type4,
         co2_emissions,
         submitted: true,
         submitted_at: new Date().toISOString(),

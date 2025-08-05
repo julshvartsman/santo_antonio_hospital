@@ -148,28 +148,6 @@ export default function DepartmentDataEntry() {
         </p>
       </div>
 
-      {/* Quick Action Card */}
-      <Card className="border-2 border-blue-200 bg-blue-50">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Submit This Month's Data
-            </h2>
-            <p className="text-gray-600">
-              Enter your sustainability metrics for {currentMonthName}
-            </p>
-            <Button
-              size="lg"
-              onClick={() => router.push("/department/data-entry/new")}
-              className="flex items-center space-x-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Create New Entry</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Tabs for Data Entry and Reports */}
       <Tabs
         value={activeTab}

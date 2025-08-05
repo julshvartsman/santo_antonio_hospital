@@ -31,7 +31,7 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
     description: "Total water consumption for the month",
   },
   {
-    key: "waste_type1",
+    key: "type1",
     label: "Type 1 Waste Residuals",
     unit: "kg",
     type: "number",
@@ -40,7 +40,7 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
     description: "Type 1 waste residuals for the month",
   },
   {
-    key: "waste_type2",
+    key: "type2",
     label: "Type 2 Waste Residuals",
     unit: "kg",
     type: "number",
@@ -49,7 +49,7 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
     description: "Type 2 waste residuals for the month",
   },
   {
-    key: "waste_type3",
+    key: "type3",
     label: "Type 3 Waste Residuals",
     unit: "kg",
     type: "number",
@@ -58,7 +58,7 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
     description: "Type 3 waste residuals for the month",
   },
   {
-    key: "waste_type4",
+    key: "type4",
     label: "Type 4 Waste Residuals",
     unit: "kg",
     type: "number",
@@ -116,10 +116,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     SUSTAINABILITY_METRICS.forEach((metric) => {
       const value = formData[metric.key];
 
-      if (
-        metric.required &&
-        (value === undefined || value === null || value === 0)
-      ) {
+      if (metric.required && (value === undefined || value === null || value === 0)) {
         newErrors[metric.key] = `${metric.label} is required`;
       } else if (value !== undefined && value !== null) {
         if (metric.min !== undefined && value < metric.min) {
@@ -141,9 +138,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
   const handleInputChange = (key: string, value: string) => {
     const numValue = value === "" ? 0 : parseFloat(value);
+    const finalValue = isNaN(numValue) ? 0 : numValue;
+    
     setFormData((prev) => ({
       ...prev,
-      [key]: isNaN(numValue) ? 0 : numValue,
+      [key]: finalValue,
     }));
 
     // Clear error when user starts typing
@@ -158,17 +157,27 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
   const handleSave = async () => {
     if (validateForm()) {
-      await onSave?.(formData);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      try {
+        await onSave?.(formData);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch (error) {
+        console.error("Error saving form:", error);
+        // You could add error state handling here if needed
+      }
     }
   };
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      await onSubmit?.(formData);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      try {
+        await onSubmit?.(formData);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        // You could add error state handling here if needed
+      }
     }
   };
 

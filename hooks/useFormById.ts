@@ -101,13 +101,13 @@ export const useFormById = (formId: string) => {
         year,
         data: entryData
           ? {
-              kwh_usage: entryData.kwh_usage,
-              water_usage_m3: entryData.water_usage_m3,
-              waste_type1: entryData.waste_type1,
-              waste_type2: entryData.waste_type2,
-              waste_type3: entryData.waste_type3,
-              waste_type4: entryData.waste_type4,
-              co2_emissions: entryData.co2_emissions,
+              kwh_usage: entryData.kwh_usage || 0,
+              water_usage_m3: entryData.water_usage_m3 || 0,
+              type1: entryData.type1 || 0,
+              type2: entryData.type2 || 0,
+              type3: entryData.type3 || 0,
+              type4: entryData.type4 || 0,
+              co2_emissions: entryData.co2_emissions || 0,
             }
           : {},
         submitted: formData?.submitted || entryData?.submitted || false,
@@ -122,6 +122,19 @@ export const useFormById = (formId: string) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to ensure proper data type conversion
+  const convertFormData = (data: Record<string, number>) => {
+    return {
+      kwh_usage: Number(data.kwh_usage) || 0,
+      water_usage_m3: Number(data.water_usage_m3) || 0,
+      type1: Number(data.type1) || 0,
+      type2: Number(data.type2) || 0,
+      type3: Number(data.type3) || 0,
+      type4: Number(data.type4) || 0,
+      co2_emissions: Number(data.co2_emissions) || 0,
+    };
   };
 
   const saveForm = async (data: Record<string, number>) => {
@@ -141,6 +154,9 @@ export const useFormById = (formId: string) => {
         .toString()
         .padStart(2, "0")}-01`;
 
+      // Convert and validate form data
+      const convertedData = convertFormData(data);
+
       // Check if entry already exists
       const { data: existingEntry, error: checkError } = await supabase
         .from("entries")
@@ -153,13 +169,7 @@ export const useFormById = (formId: string) => {
         hospital_id: form.hospital_id,
         user_id: authUser.id,
         month_year: monthYear,
-        kwh_usage: data.kwh_usage || 0,
-        water_usage_m3: data.water_usage_m3 || 0,
-        waste_type1: data.waste_type1 || 0,
-        waste_type2: data.waste_type2 || 0,
-        waste_type3: data.waste_type3 || 0,
-        waste_type4: data.waste_type4 || 0,
-        co2_emissions: data.co2_emissions || 0,
+        ...convertedData,
         submitted: false,
         updated_at: new Date().toISOString(),
       };
@@ -184,14 +194,18 @@ export const useFormById = (formId: string) => {
       }
 
       if (entryResult.error) {
+        console.error("Error saving to entries table:", entryResult.error);
+        console.error("Entry data that was sent:", entryData);
         throw entryResult.error;
       }
+
+      console.log("Successfully saved to entries table:", entryResult.data);
 
       setForm((prev) =>
         prev
           ? {
               ...prev,
-              data,
+              data: convertedData,
             }
           : null
       );
@@ -219,6 +233,9 @@ export const useFormById = (formId: string) => {
         .toString()
         .padStart(2, "0")}-01`;
 
+      // Convert and validate form data
+      const convertedData = convertFormData(data);
+
       // Update forms table with submission status
       const { error: updateFormError } = await supabase
         .from("forms")
@@ -230,21 +247,18 @@ export const useFormById = (formId: string) => {
         .eq("id", formId);
 
       if (updateFormError) {
+        console.error("Error updating forms table:", updateFormError);
         throw updateFormError;
       }
+
+      console.log("Successfully updated forms table");
 
       // Update entries table with all the data
       const entryData = {
         hospital_id: form.hospital_id,
         user_id: authUser.id,
         month_year: monthYear,
-        kwh_usage: data.kwh_usage || 0,
-        water_usage_m3: data.water_usage_m3 || 0,
-        waste_type1: data.waste_type1 || 0,
-        waste_type2: data.waste_type2 || 0,
-        waste_type3: data.waste_type3 || 0,
-        waste_type4: data.waste_type4 || 0,
-        co2_emissions: data.co2_emissions || 0,
+        ...convertedData,
         submitted: true,
         submitted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -282,7 +296,7 @@ export const useFormById = (formId: string) => {
         console.error("Entry result:", entryResult);
         console.error("Entry data that was sent:", entryData);
         console.error("Existing entry found:", existingEntry);
-        // Don't throw error here - forms table was updated successfully
+        throw new Error(`Failed to sync to entries table: ${entryResult.error.message}`);
       } else {
         console.log("Successfully synced to entries table:", entryResult.data);
       }
@@ -291,7 +305,7 @@ export const useFormById = (formId: string) => {
         prev
           ? {
               ...prev,
-              data,
+              data: convertedData,
               submitted: true,
               submitted_at: new Date().toISOString(),
             }

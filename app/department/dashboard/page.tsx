@@ -145,7 +145,7 @@ export default function DepartmentDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Data Entry Card */}
         <Card className="border-2 border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
@@ -169,28 +169,6 @@ export default function DepartmentDashboard() {
           </CardContent>
         </Card>
 
-        {/* Export Data Card */}
-        <Card className="border-2 border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <Download className="h-12 w-12 text-green-600 mx-auto" />
-              <h2 className="text-xl font-semibold text-gray-900">
-                Export Data
-              </h2>
-              <p className="text-gray-600">
-                Download your historical data for analysis
-              </p>
-              <Button
-                size="lg"
-                onClick={exportToCSV}
-                className="flex items-center space-x-2 mx-auto bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Download className="h-5 w-5" />
-                <span>Export CSV</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Submission Status Banner */}

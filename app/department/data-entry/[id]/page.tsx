@@ -75,15 +75,29 @@ export default function DepartmentDataEntryForm() {
     useFormById(formId);
 
   const handleSave = async (data: Record<string, number>) => {
-    await saveForm(data);
+    try {
+      console.log("Saving form data:", data);
+      await saveForm(data);
+      console.log("Form saved successfully");
+    } catch (error) {
+      console.error("Error saving form:", error);
+      // You could add user notification here
+    }
   };
 
   const handleSubmit = async (data: Record<string, number>) => {
-    await submitForm(data);
-    // Redirect back to the forms list after successful submission
-    setTimeout(() => {
-      router.push("/department/data-entry");
-    }, 2000);
+    try {
+      console.log("Submitting form data:", data);
+      await submitForm(data);
+      console.log("Form submitted successfully");
+      // Redirect back to the forms list after successful submission
+      setTimeout(() => {
+        router.push("/department/data-entry");
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // You could add user notification here
+    }
   };
 
   if (loading) {

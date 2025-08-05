@@ -69,10 +69,10 @@ export interface Entry {
   month_year: string; // Format: YYYY-MM-01
   kwh_usage: number;
   water_usage_m3: number;
-  waste_type1: number;
-  waste_type2: number;
-  waste_type3: number;
-  waste_type4: number;
+  type1: number;
+  type2: number;
+  type3: number;
+  type4: number;
   co2_emissions: number;
   submitted: boolean;
   submitted_at?: string;
