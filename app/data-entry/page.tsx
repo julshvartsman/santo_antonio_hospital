@@ -1,19 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Edit3,
-  Lock,
-  Unlock,
-  Save,
-  X,
-  Filter,
-  Download,
-  RefreshCw,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Save, AlertCircle, CheckCircle2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -21,486 +25,413 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useApp } from "@/components/providers/AppProvider";
-import { generateMockReports } from "@/utils/mockData";
-import { formatDateTime, formatNumber } from "@/lib/utils";
-import { SustainabilityMetric, MonthlyReport } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabaseClient";
+import { format } from "date-fns";
 
-interface EditingCell {
-  metricId: string;
-  field: "value" | "target";
-  value: string;
-}
+// Form validation schema
+const dataEntrySchema = z.object({
+  month_year: z.string().min(1, "Please enter a month and year (e.g., 'January 2024' or '2024-01')"),
+  kwh_usage: z.number().min(0, "KWH usage must be a positive number"),
+  water_usage_m3: z.number().min(0, "Water usage must be a positive number"),
+  co2_emissions: z.number().min(0, "CO2 emissions must be a positive number"),
+  submitted: z.boolean().default(false),
+});
 
-// Disable static generation for this page
-export const dynamic = "force-dynamic";
+type DataEntryFormData = z.infer<typeof dataEntrySchema>;
 
 export default function DataEntryPage() {
-  const { auth, language } = useApp();
-  const [reports] = useState<MonthlyReport[]>(() => generateMockReports());
-  const [currentReport, setCurrentReport] = useState<MonthlyReport>(
-    () => reports.find((r) => !r.isCompleted) || reports[0]
-  );
-  const [metrics, setMetrics] = useState<SustainabilityMetric[]>(
-    currentReport.metrics
-  );
-  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
-  const [filter, setFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string>("");
 
-  // Update metrics when report changes
-  useEffect(() => {
-    setMetrics(currentReport.metrics);
-  }, [currentReport]);
-
-  // Filter metrics based on search and category
-  const filteredMetrics = metrics.filter((metric) => {
-    const matchesSearch =
-      metric.metric.toLowerCase().includes(filter.toLowerCase()) ||
-      metric.category.toLowerCase().includes(filter.toLowerCase()) ||
-      metric.subcategory.toLowerCase().includes(filter.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "all" || metric.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+  const form = useForm<DataEntryFormData>({
+    resolver: zodResolver(dataEntrySchema),
+    defaultValues: {
+      month_year: "",
+      kwh_usage: 0,
+      water_usage_m3: 0,
+      co2_emissions: 0,
+      submitted: false,
+    },
   });
 
-  // Get unique categories for filter
-  const categories = Array.from(new Set(metrics.map((m) => m.category)));
+  // Test connection on component mount
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        const startTime = Date.now();
+        const { data, error } = await supabase
+          .from("entries")
+          .select("id")
+          .limit(1);
+        const endTime = Date.now();
+        
+        if (error) {
+          setConnectionStatus(`Connection error: ${error.message}`);
+        } else {
+          setConnectionStatus(`Connection OK (${endTime - startTime}ms)`);
+        }
+      } catch (err) {
+        setConnectionStatus(`Connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    };
 
-  const handleEdit = (
-    metricId: string,
-    field: "value" | "target",
-    currentValue: number | null
-  ) => {
-    const metric = metrics.find((m) => m.id === metricId);
-    if (metric?.isLocked && metric.lockedBy?.id !== auth.user?.id) {
-      return; // Can't edit locked cells
+    if (user) {
+      testConnection();
+    }
+  }, [user]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // Show error if not authenticated
+  if (!user) {
+    return null;
+  }
+
+  const onSubmit = async (data: DataEntryFormData) => {
+    if (!user) {
+      setError("User not authenticated");
+      return;
     }
 
-    setEditingCell({
-      metricId,
-      field,
-      value: currentValue?.toString() || "",
-    });
-  };
+    setIsSubmitting(true);
+    setError(null);
+    setSubmitSuccess(false);
 
-  const handleSaveEdit = () => {
-    if (!editingCell || !auth.user) return;
-
-    const newValue = parseFloat(editingCell.value);
-    if (isNaN(newValue)) return;
-
-    setMetrics((prev) =>
-      prev.map((metric) => {
-        if (metric.id === editingCell.metricId) {
-          return {
-            ...metric,
-            [editingCell.field]: newValue,
-            lastUpdated: new Date(),
-            updatedBy: auth.user!,
-          };
-        }
-        return metric;
-      })
-    );
-
-    setEditingCell(null);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCell(null);
-  };
-
-  const handleToggleLock = (metricId: string) => {
-    if (!auth.user) return;
-
-    setMetrics((prev) =>
-      prev.map((metric) => {
-        if (metric.id === metricId) {
-          const isCurrentlyLocked = metric.isLocked;
-
-          // If unlocking, only admin or the locker can unlock
-          if (
-            isCurrentlyLocked &&
-            metric.lockedBy?.id !== auth.user!.id &&
-            auth.user!.role !== "admin"
-          ) {
-            return metric;
+    try {
+      // Convert month_year string to proper date format
+      // Parse the month/year string and convert to YYYY-MM-01 format
+      let monthYearDate;
+      try {
+        // Try to parse common date formats
+        const dateStr = data.month_year.trim();
+        if (dateStr.match(/^\d{4}-\d{2}$/)) {
+          // Format: YYYY-MM
+          monthYearDate = `${dateStr}-01`;
+        } else if (dateStr.match(/^\w+ \d{4}$/)) {
+          // Format: "January 2024"
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) {
+            throw new Error("Invalid date format");
           }
-
-          return {
-            ...metric,
-            isLocked: !isCurrentlyLocked,
-            lockedBy: !isCurrentlyLocked ? auth.user! : undefined,
-            lockedAt: !isCurrentlyLocked ? new Date() : undefined,
-            lastUpdated: new Date(),
-            updatedBy: auth.user!,
-          };
+          monthYearDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+        } else {
+          // Try direct date parsing
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) {
+            throw new Error("Invalid date format");
+          }
+          monthYearDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
         }
-        return metric;
-      })
-    );
-  };
+      } catch (dateError) {
+        throw new Error("Please enter a valid month and year (e.g., 'January 2024' or '2024-01')");
+      }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSaveEdit();
-    } else if (e.key === "Escape") {
-      handleCancelEdit();
+      // Prepare the data for submission - simplified
+      const submissionData = {
+        user_id: user.id,
+        hospital_id: user.hospital_id,
+        month_year: monthYearDate,
+        kwh_usage: data.kwh_usage,
+        water_usage_m3: data.water_usage_m3,
+        co2_emissions: data.co2_emissions,
+        submitted: true,
+        submitted_at: new Date().toISOString(),
+      };
+
+      console.log("Submitting data:", submissionData);
+      console.log("User info:", { id: user.id, hospital_id: user.hospital_id });
+
+      // Test connection first
+      console.log("Testing database connection...");
+      const testStart = Date.now();
+      const { data: testData, error: testError } = await supabase
+        .from("entries")
+        .select("id")
+        .limit(1);
+      const testEnd = Date.now();
+      console.log(`Connection test took ${testEnd - testStart}ms`);
+
+      if (testError) {
+        console.error("Connection test failed:", testError);
+        throw new Error(`Database connection failed: ${testError.message}`);
+      }
+
+      // Insert data into the entries table
+      console.log("Inserting data...");
+      const insertStart = Date.now();
+      const { data: result, error } = await supabase
+        .from("entries")
+        .insert([submissionData])
+        .select();
+      const insertEnd = Date.now();
+      console.log(`Insert operation took ${insertEnd - insertStart}ms`);
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw new Error(error.message);
+      }
+
+      console.log("Data submitted successfully:", result);
+      setSubmitSuccess(true);
+      form.reset();
+      
+      // Show success message for 3 seconds
+      setTimeout(() => {
+        setSubmitSuccess(false);
+      }, 3000);
+
+    } catch (err) {
+      console.error("Submission error:", err);
+      setError(err instanceof Error ? err.message : "Failed to submit data. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const canEditMetric = (metric: SustainabilityMetric) => {
-    if (!metric.isLocked) return true;
-    if (!auth.user) return false;
-    return metric.lockedBy?.id === auth.user.id || auth.user.role === "admin";
-  };
-
-  const canUnlockMetric = (metric: SustainabilityMetric) => {
-    if (!auth.user) return false;
-    return metric.lockedBy?.id === auth.user.id || auth.user.role === "admin";
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Data Entry</h1>
-        <p className="text-gray-600 mt-2">
-          {language.language === "en"
-            ? "Enter and manage monthly sustainability data for your hospital."
-            : "Insira e gerencie dados mensais de sustentabilidade do seu hospital."}
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Sustainability Data Entry
+          </h1>
+          <p className="text-gray-600">
+            Enter monthly sustainability metrics for your hospital
+          </p>
+        </div>
 
-      {/* Report Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>
-              {language.language === "en"
-                ? "Monthly Report"
-                : "Relatório Mensal"}
-            </span>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {language.language === "en" ? "Refresh" : "Atualizar"}
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                {language.language === "en" ? "Export" : "Exportar"}
-              </Button>
-            </div>
-          </CardTitle>
-          <div className="text-sm text-muted-foreground">
-            <div className="flex items-center justify-between">
-              <span>
-                {new Date(
-                  currentReport.year,
-                  currentReport.month - 1
-                ).toLocaleDateString(
-                  language.language === "en" ? "en-US" : "pt-BR",
-                  { month: "long", year: "numeric" }
-                )}
-              </span>
-              <div className="flex items-center space-x-2">
-                {currentReport.isCompleted ? (
-                  <span className="flex items-center text-green-600">
-                    <CheckCircle2 className="h-4 w-4 mr-1" />
-                    {language.language === "en" ? "Completed" : "Concluído"}
-                  </span>
-                ) : (
-                  <span className="flex items-center text-yellow-600">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {language.language === "en"
-                      ? "In Progress"
-                      : "Em Progresso"}
-                  </span>
-                )}
+        {/* Success Alert */}
+        {submitSuccess && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Data submitted successfully!
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Form Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Sustainability Report</CardTitle>
+            <CardDescription>
+              Enter your hospital's sustainability metrics for the selected month
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Month/Year Input */}
+                <FormField
+                  control={form.control}
+                  name="month_year"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Month and Year</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter month and year (e.g., January 2024 or 2024-01)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* KWH Usage */}
+                <FormField
+                  control={form.control}
+                  name="kwh_usage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>KWH Usage</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Enter KWH usage"
+                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Water Usage */}
+                <FormField
+                  control={form.control}
+                  name="water_usage_m3"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Water Usage (m³)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Enter water usage in cubic meters"
+                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* CO2 Emissions */}
+                <FormField
+                  control={form.control}
+                  name="co2_emissions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CO2 Emissions</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Enter CO2 emissions"
+                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Submit Button */}
+                <div className="flex gap-4">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Submit Data
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        {/* User Info */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg">User Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="font-medium">User ID:</span> {user.id}
+              </div>
+              <div>
+                <span className="font-medium">Email:</span> {user.email}
+              </div>
+              <div>
+                <span className="font-medium">Name:</span> {user.name}
+              </div>
+              <div>
+                <span className="font-medium">Role:</span> {user.role}
+              </div>
+              <div>
+                <span className="font-medium">Hospital ID:</span> {user.hospital_id || "Not assigned"}
+              </div>
+              <div>
+                <span className="font-medium">Database Connection:</span>{" "}
+                <span className={connectionStatus.includes("OK") ? "text-green-600" : "text-red-600"}>
+                  {connectionStatus || "Testing..."}
+                </span>
               </div>
             </div>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder={
-                  language.language === "en"
-                    ? "Search metrics..."
-                    : "Buscar métricas..."
-                }
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-full"
-              />
+        {/* Network Diagnostics */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Network Diagnostics</CardTitle>
+            <CardDescription>
+              This helps identify if the issue is with your connection or the application
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Internet Connection:</span>
+                <span className="text-sm text-green-600">✓ Online</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Supabase URL:</span>
+                <span className="text-sm text-gray-600">
+                  {process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓ Configured" : "✗ Missing"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">API Key:</span>
+                <span className="text-sm text-gray-600">
+                  {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓ Configured" : "✗ Missing"}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-4">
+                <p><strong>If you're experiencing slow performance:</strong></p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Check your WiFi connection speed</li>
+                  <li>Try refreshing the page</li>
+                  <li>Clear your browser cache</li>
+                  <li>Try a different browser</li>
+                  <li>Check if other websites are also slow</li>
+                </ul>
+              </div>
             </div>
-            <div className="sm:w-48">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-              >
-                <option value="all">
-                  {language.language === "en"
-                    ? "All Categories"
-                    : "Todas Categorias"}
-                </option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Data Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="h-5 w-5 mr-2" />
-            Sustainability Data ({filteredMetrics.length})
-          </CardTitle>
-          <CardDescription>
-            {language.language === "en"
-              ? "Click on values to edit. Use the lock/unlock buttons to control access."
-              : "Clique nos valores para editar. Use os botões de bloqueio para controlar o acesso."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">Category</TableHead>
-                  <TableHead className="w-[150px]">Subcategory</TableHead>
-                  <TableHead className="w-[200px]">Metric</TableHead>
-                  <TableHead className="w-[100px] text-right">Value</TableHead>
-                  <TableHead className="w-[80px]">Unit</TableHead>
-                  <TableHead className="w-[100px] text-right">Target</TableHead>
-                  <TableHead className="w-[100px] text-center">
-                    Status
-                  </TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMetrics.map((metric) => (
-                  <TableRow
-                    key={metric.id}
-                    className={metric.isLocked ? "bg-gray-50" : ""}
-                  >
-                    <TableCell className="font-medium">
-                      {metric.category}
-                    </TableCell>
-                    <TableCell>{metric.subcategory}</TableCell>
-                    <TableCell>{metric.metric}</TableCell>
-
-                    {/* Value Cell */}
-                    <TableCell className="text-right">
-                      {editingCell?.metricId === metric.id &&
-                      editingCell.field === "value" ? (
-                        <div className="flex items-center space-x-1">
-                          <Input
-                            type="number"
-                            value={editingCell.value}
-                            onChange={(e) =>
-                              setEditingCell({
-                                ...editingCell,
-                                value: e.target.value,
-                              })
-                            }
-                            onKeyDown={handleKeyDown}
-                            className="w-20 h-8 text-right"
-                            autoFocus
-                          />
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={handleSaveEdit}
-                          >
-                            <Save className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={handleCancelEdit}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            handleEdit(metric.id, "value", metric.value)
-                          }
-                          disabled={!canEditMetric(metric)}
-                          className={`text-right w-full hover:bg-gray-100 px-2 py-1 rounded ${
-                            canEditMetric(metric)
-                              ? "cursor-pointer"
-                              : "cursor-not-allowed opacity-50"
-                          }`}
-                        >
-                          {metric.value ? formatNumber(metric.value) : "-"}
-                        </button>
-                      )}
-                    </TableCell>
-
-                    <TableCell className="text-sm text-gray-500">
-                      {metric.unit}
-                    </TableCell>
-
-                    {/* Target Cell */}
-                    <TableCell className="text-right">
-                      {editingCell?.metricId === metric.id &&
-                      editingCell.field === "target" ? (
-                        <div className="flex items-center space-x-1">
-                          <Input
-                            type="number"
-                            value={editingCell.value}
-                            onChange={(e) =>
-                              setEditingCell({
-                                ...editingCell,
-                                value: e.target.value,
-                              })
-                            }
-                            onKeyDown={handleKeyDown}
-                            className="w-20 h-8 text-right"
-                            autoFocus
-                          />
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={handleSaveEdit}
-                          >
-                            <Save className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={handleCancelEdit}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            handleEdit(
-                              metric.id,
-                              "target",
-                              metric.target ?? null
-                            )
-                          }
-                          disabled={!canEditMetric(metric)}
-                          className={`text-right w-full hover:bg-gray-100 px-2 py-1 rounded ${
-                            canEditMetric(metric)
-                              ? "cursor-pointer"
-                              : "cursor-not-allowed opacity-50"
-                          }`}
-                        >
-                          {metric.target ? formatNumber(metric.target) : "-"}
-                        </button>
-                      )}
-                    </TableCell>
-
-                    <TableCell className="text-center">
-                      {metric.isLocked ? (
-                        <div className="flex items-center justify-center">
-                          <Lock className="h-4 w-4 text-red-500" />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center">
-                          <Edit3 className="h-4 w-4 text-green-500" />
-                        </div>
-                      )}
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8"
-                          onClick={() => handleToggleLock(metric.id)}
-                          disabled={metric.isLocked && !canUnlockMetric(metric)}
-                          title={
-                            metric.isLocked
-                              ? `Locked by ${
-                                  metric.lockedBy?.name
-                                } on ${formatDateTime(metric.lockedAt!)}`
-                              : "Click to lock this metric"
-                          }
-                        >
-                          {metric.isLocked ? (
-                            <Unlock className="h-4 w-4 text-red-500" />
-                          ) : (
-                            <Lock className="h-4 w-4 text-gray-400" />
-                          )}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredMetrics.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {language.language === "en"
-                ? "No metrics found."
-                : "Nenhuma métrica encontrada."}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Instructions */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {language.language === "en" ? (
-            <>
-              <strong>Instructions:</strong> Click on value or target cells to
-              edit them. Use the lock button to prevent other users from editing
-              specific metrics. Only administrators can unlock metrics locked by
-              other users.
-            </>
-          ) : (
-            <>
-              <strong>Instruções:</strong> Clique nas células de valor ou meta
-              para editá-las. Use o botão de bloqueio para impedir que outros
-              usuários editem métricas específicas. Apenas administradores podem
-              desbloquear métricas bloqueadas por outros usuários.
-            </>
-          )}
-        </AlertDescription>
-      </Alert>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

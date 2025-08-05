@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,15 +14,99 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
   Activity,
+  Users,
 } from "lucide-react";
 import { useApp } from "@/components/providers/AppProvider";
+import { supabase } from "@/lib/supabaseClient";
+import { assignHospitalToUser } from "@/lib/utils";
+
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  hospital_id: string | null;
+  created_at: string;
+}
+
+interface Hospital {
+  id: string;
+  name: string;
+}
 
 export default function AdminDashboard() {
   const { language } = useApp();
+  const [users, setUsers] = useState<User[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [assigning, setAssigning] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchUsersAndHospitals();
+  }, []);
+
+  const fetchUsersAndHospitals = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch users without hospital_id
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select('*')
+        .is('hospital_id', null)
+        .order('created_at', { ascending: false });
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        return;
+      }
+
+      // Fetch all hospitals
+      const { data: hospitalsData, error: hospitalsError } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('name');
+
+      if (hospitalsError) {
+        console.error('Error fetching hospitals:', hospitalsError);
+        return;
+      }
+
+      setUsers(usersData || []);
+      setHospitals(hospitalsData || []);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAssignHospital = async (userId: string, hospitalName: string) => {
+    try {
+      setAssigning(userId);
+      const success = await assignHospitalToUser(userId, hospitalName);
+      
+      if (success) {
+        // Refresh the users list
+        await fetchUsersAndHospitals();
+      }
+    } catch (error) {
+      console.error('Error assigning hospital:', error);
+    } finally {
+      setAssigning(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -44,6 +128,78 @@ export default function AdminDashboard() {
           </Button>
         </AlertDescription>
       </Alert>
+
+      {/* User Management Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            User Management - Hospital Assignment
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#225384] mx-auto"></div>
+              <p className="text-gray-500 mt-2">Loading users...</p>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">All users have been assigned to hospitals!</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Assign Hospital</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.full_name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          onValueChange={(value) => handleAssignHospital(user.id, value)}
+                          disabled={assigning === user.id}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select hospital" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hospitals.map((hospital) => (
+                              <SelectItem key={hospital.id} value={hospital.name}>
+                                {hospital.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {assigning === user.id && (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#225384]"></div>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Cumulative Metrics */}
       <Card>

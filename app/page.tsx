@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,16 +17,19 @@ export default function HomePage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return; // Don't redirect until mounted
+  // Memoize the redirect logic to prevent unnecessary re-renders
+  const handleRedirect = useCallback(() => {
+    if (!mounted || isLoading || redirecting) return;
 
-    if (!isLoading && user) {
+    if (user) {
+      setRedirecting(true);
       // Redirect based on user role
       if (user.role === "admin" || user.role === "super_admin") {
         router.push("/admin/dashboard");
@@ -36,11 +39,23 @@ export default function HomePage() {
         // Fallback for any other roles - default to department dashboard
         router.push("/department/dashboard");
       }
-    } else if (!isLoading && !user) {
+    } else if (!isLoading) {
+      setRedirecting(true);
       // Redirect to login if not authenticated
       router.push("/login");
     }
-  }, [user, isLoading, router, mounted]);
+  }, [user, isLoading, router, mounted, redirecting]);
+
+  useEffect(() => {
+    handleRedirect();
+  }, [handleRedirect]);
+
+  // Show loading state for first 2 seconds, then show redirecting message
+  const [showRedirecting, setShowRedirecting] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowRedirecting(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Always render the same loading state until mounted
   if (!mounted || isLoading) {
@@ -49,7 +64,9 @@ export default function HomePage() {
         <div className="text-center">
           <Logo size="lg" className="mb-6" />
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#225384] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">
+            {showRedirecting ? "Checking authentication..." : "Loading..."}
+          </p>
         </div>
       </div>
     );

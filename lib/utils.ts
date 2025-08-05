@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { supabase } from "./supabaseClient";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -107,4 +108,56 @@ export function generateId(): string {
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Hospital mapping utilities
+export const HOSPITAL_NAMES = {
+  "General Hospital North": "north",
+  "General Hospital South": "south", 
+  "General Hospital East": "east",
+  "General Hospital West": "west",
+  "Central Medical Center": "central",
+  "Regional Hospital A": "regional-a",
+  "Regional Hospital B": "regional-b", 
+  "Metropolitan Hospital": "metropolitan"
+} as const;
+
+export type HospitalName = keyof typeof HOSPITAL_NAMES;
+
+// Function to get hospital ID by name
+export async function getHospitalIdByName(hospitalName: string): Promise<string | null> {
+  const { data: hospitals, error } = await supabase
+    .from('hospitals')
+    .select('id, name')
+    .eq('name', hospitalName)
+    .single();
+  
+  if (error || !hospitals) {
+    console.error('Error fetching hospital:', error);
+    return null;
+  }
+  
+  return hospitals.id;
+}
+
+// Function to assign hospital to user profile
+export async function assignHospitalToUser(userId: string, hospitalName: string): Promise<boolean> {
+  const hospitalId = await getHospitalIdByName(hospitalName);
+  
+  if (!hospitalId) {
+    console.error('Hospital not found:', hospitalName);
+    return false;
+  }
+  
+  const { error } = await supabase
+    .from('profiles')
+    .update({ hospital_id: hospitalId })
+    .eq('id', userId);
+  
+  if (error) {
+    console.error('Error updating user hospital:', error);
+    return false;
+  }
+  
+  return true;
 }

@@ -39,7 +39,7 @@ const signupSchema = z
       required_error: "Please select a role",
     }),
     hospital: z.string().min(1, "Hospital name is required"),
-    department: z.string().optional(),
+    // department: z.string().optional(), // Removed - not in database schema
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -65,7 +65,7 @@ export default function SignupPage() {
       confirmPassword: "",
       role: "department_head",
       hospital: "",
-      department: "",
+      // department: "", // Removed - not in database schema
     },
     mode: "onChange",
   });
@@ -77,6 +77,7 @@ export default function SignupPage() {
       setSuccess(null);
 
       // Create user account with Supabase Auth
+      console.log('Signing up user with hospital:', data.hospital);
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -85,7 +86,6 @@ export default function SignupPage() {
             name: data.name,
             role: data.role,
             hospital: data.hospital,
-            department: data.department,
           },
         },
       });
@@ -95,20 +95,42 @@ export default function SignupPage() {
       }
 
       if (authData.user) {
-        // Insert user profile into the profiles table
-        const { error: profileError } = await supabase.from("profiles").insert([
-          {
-            id: authData.user.id,
-            email: data.email,
-            full_name: data.name,
-            role: data.role,
-            hospital: data.hospital,
-            department: data.department,
-          },
-        ]);
+        // Wait a moment for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Manually ensure hospital assignment if the trigger didn't work
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
 
-        if (profileError) {
-          throw new Error(profileError.message);
+          if (profile && !profile.hospital_id) {
+            console.log('Profile found but no hospital_id, attempting to assign hospital:', data.hospital);
+            // Get hospital ID by name
+            const { data: hospital, error: hospitalError } = await supabase
+              .from('hospitals')
+              .select('id')
+              .eq('name', data.hospital)
+              .single();
+
+            if (hospital && !hospitalError) {
+              console.log('Hospital found, updating profile with hospital_id:', hospital.id);
+              // Update profile with hospital_id
+              await supabase
+                .from('profiles')
+                .update({ hospital_id: hospital.id })
+                .eq('id', authData.user.id);
+            } else {
+              console.error('Hospital not found or error:', hospitalError);
+            }
+          } else if (profile && profile.hospital_id) {
+            console.log('Profile already has hospital_id:', profile.hospital_id);
+          }
+        } catch (profileErr) {
+          console.warn('Profile assignment warning:', profileErr);
+          // Continue anyway - the user can still sign in
         }
 
         setSuccess(
@@ -264,29 +286,29 @@ export default function SignupPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Rua Câmara Pestana, 348">
-                            Rua Câmara Pestana, 348
+                          <SelectItem value="General Hospital North">
+                            General Hospital North
                           </SelectItem>
-                          <SelectItem value="Rua Dr Aires G Osório, 662">
-                            Rua Dr Aires G Osório, 662
+                          <SelectItem value="General Hospital South">
+                            General Hospital South
                           </SelectItem>
-                          <SelectItem value="Rua da Restauração, 366">
-                            Rua da Restauração, 366
+                          <SelectItem value="General Hospital East">
+                            General Hospital East
                           </SelectItem>
-                          <SelectItem value="Largo MJD, Largo Alexandre Sá Pinto, 8">
-                            Largo MJD, Largo Alexandre Sá Pinto, 8
+                          <SelectItem value="General Hospital West">
+                            General Hospital West
                           </SelectItem>
-                          <SelectItem value="Rua D. Manuel II">
-                            Rua D. Manuel II
+                          <SelectItem value="Central Medical Center">
+                            Central Medical Center
                           </SelectItem>
-                          <SelectItem value="Rua Prof Álvaro Rodrigues, Praça Pedro Nunes, 88">
-                            Rua Prof Álvaro Rodrigues, Praça Pedro Nunes, 88
+                          <SelectItem value="Regional Hospital A">
+                            Regional Hospital A
                           </SelectItem>
-                          <SelectItem value="Rua Costa Cabral, 156">
-                            Rua Costa Cabral, 156
+                          <SelectItem value="Regional Hospital B">
+                            Regional Hospital B
                           </SelectItem>
-                          <SelectItem value="Rua Quinta Vale Chão">
-                            Rua Quinta Vale Chão
+                          <SelectItem value="Metropolitan Hospital">
+                            Metropolitan Hospital
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -295,23 +317,7 @@ export default function SignupPage() {
                   )}
                 />
 
-                <FormField
-                  control={signupForm.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter department name"
-                          {...field}
-                          className="h-12 border-2 border-gray-200 rounded-lg"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Department field removed - not in database schema */}
 
                 <FormField
                   control={signupForm.control}

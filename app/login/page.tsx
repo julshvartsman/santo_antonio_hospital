@@ -92,8 +92,8 @@ export default function LoginPage() {
       // Redirect based on user role
       if (user.role === "admin" || user.role === "super_admin") {
         router.push("/admin/dashboard");
-      } else if (user.role === "department_head") {
-        router.push("/department/dashboard");
+      // } else if (user.role === "department_head") {
+      //   router.push("/department/dashboard");
       } else {
         // Fallback for any other roles - default to department dashboard
         router.push("/department/dashboard");

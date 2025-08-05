@@ -146,13 +146,24 @@ CREATE TRIGGER update_entries_updated_at BEFORE UPDATE ON entries
 -- Function to create user profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  hospital_id UUID;
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  -- Try to find hospital by name from user metadata
+  IF NEW.raw_user_meta_data->>'hospital' IS NOT NULL THEN
+    SELECT id INTO hospital_id 
+    FROM hospitals 
+    WHERE name = NEW.raw_user_meta_data->>'hospital' 
+    LIMIT 1;
+  END IF;
+
+  INSERT INTO public.profiles (id, email, full_name, role, hospital_id)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'department_head')
+    COALESCE(NEW.raw_user_meta_data->>'role', 'department_head'),
+    hospital_id
   );
   RETURN NEW;
 END;
