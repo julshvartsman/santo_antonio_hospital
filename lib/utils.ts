@@ -110,54 +110,76 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Hospital mapping utilities
-export const HOSPITAL_NAMES = {
-  "General Hospital North": "north",
-  "General Hospital South": "south", 
-  "General Hospital East": "east",
-  "General Hospital West": "west",
-  "Central Medical Center": "central",
-  "Regional Hospital A": "regional-a",
-  "Regional Hospital B": "regional-b", 
-  "Metropolitan Hospital": "metropolitan"
-} as const;
+// Hospital mapping utilities - now dynamic
+export type HospitalName = string;
 
-export type HospitalName = keyof typeof HOSPITAL_NAMES;
+// Function to get hospital slug from name (for routing/URLs)
+export function getHospitalSlug(hospitalName: string): string {
+  return hospitalName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 // Function to get hospital ID by name
 export async function getHospitalIdByName(hospitalName: string): Promise<string | null> {
-  const { data: hospitals, error } = await supabase
-    .from('hospitals')
-    .select('id, name')
-    .eq('name', hospitalName)
-    .single();
-  
-  if (error || !hospitals) {
-    console.error('Error fetching hospital:', error);
+  try {
+    // First try exact match
+    const { data: hospital, error } = await supabase
+      .from('hospitals')
+      .select('id, name')
+      .eq('name', hospitalName)
+      .single();
+    
+    if (!error && hospital) {
+      return hospital.id;
+    }
+    
+    // If exact match fails, try partial match
+    const { data: partialMatch, error: partialError } = await supabase
+      .from('hospitals')
+      .select('id, name')
+      .ilike('name', `%${hospitalName}%`)
+      .single();
+    
+    if (!partialError && partialMatch) {
+      console.log(`Found hospital by partial match: "${partialMatch.name}" for "${hospitalName}"`);
+      return partialMatch.id;
+    }
+    
+    console.error('Hospital not found:', hospitalName);
+    return null;
+  } catch (err) {
+    console.error('Error fetching hospital:', err);
     return null;
   }
-  
-  return hospitals.id;
 }
 
 // Function to assign hospital to user profile
 export async function assignHospitalToUser(userId: string, hospitalName: string): Promise<boolean> {
-  const hospitalId = await getHospitalIdByName(hospitalName);
-  
-  if (!hospitalId) {
-    console.error('Hospital not found:', hospitalName);
+  try {
+    const hospitalId = await getHospitalIdByName(hospitalName);
+    
+    if (!hospitalId) {
+      console.error('Hospital not found:', hospitalName);
+      return false;
+    }
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ hospital_id: hospitalId })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Error updating user hospital:', error);
+      return false;
+    }
+    
+    console.log(`Successfully assigned hospital "${hospitalName}" (ID: ${hospitalId}) to user ${userId}`);
+    return true;
+  } catch (err) {
+    console.error('Error in assignHospitalToUser:', err);
     return false;
   }
-  
-  const { error } = await supabase
-    .from('profiles')
-    .update({ hospital_id: hospitalId })
-    .eq('id', userId);
-  
-  if (error) {
-    console.error('Error updating user hospital:', error);
-    return false;
-  }
-  
-  return true;
 }

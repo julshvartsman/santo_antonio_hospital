@@ -28,6 +28,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Logo from "@/components/ui/Logo";
 import { supabase } from "@/lib/supabaseClient";
+import { useHospitals } from "@/hooks/useHospitals";
 
 const signupSchema = z
   .object({
@@ -50,6 +51,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const { hospitals, loading: hospitalsLoading, error: hospitalsError } = useHospitals();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +71,13 @@ export default function SignupPage() {
     },
     mode: "onChange",
   });
+
+  // Reset hospital field when hospitals are loaded
+  React.useEffect(() => {
+    if (!hospitalsLoading && hospitals.length > 0) {
+      signupForm.setValue("hospital", "");
+    }
+  }, [hospitalsLoading, hospitals.length, signupForm]);
 
   const onSignupSubmit = async (data: SignupFormData) => {
     try {
@@ -118,12 +127,32 @@ export default function SignupPage() {
             if (hospital && !hospitalError) {
               console.log('Hospital found, updating profile with hospital_id:', hospital.id);
               // Update profile with hospital_id
-              await supabase
+              const { error: updateError } = await supabase
                 .from('profiles')
                 .update({ hospital_id: hospital.id })
                 .eq('id', authData.user.id);
+              
+              if (updateError) {
+                console.error('Error updating profile with hospital_id:', updateError);
+              } else {
+                console.log('Successfully updated profile with hospital_id:', hospital.id);
+              }
             } else {
               console.error('Hospital not found or error:', hospitalError);
+              // Try to find hospital by partial name match as fallback
+              const { data: partialMatch, error: partialError } = await supabase
+                .from('hospitals')
+                .select('id, name')
+                .ilike('name', `%${data.hospital}%`)
+                .single();
+              
+              if (partialMatch && !partialError) {
+                console.log('Found hospital by partial match:', partialMatch.name);
+                await supabase
+                  .from('profiles')
+                  .update({ hospital_id: partialMatch.id })
+                  .eq('id', authData.user.id);
+              }
             }
           } else if (profile && profile.hospital_id) {
             console.log('Profile already has hospital_id:', profile.hospital_id);
@@ -201,10 +230,17 @@ export default function SignupPage() {
               </Alert>
             )}
 
-            <Form {...signupForm} key="signup-form">
+            {hospitalsError && (
+              <Alert variant="destructive">
+                <AlertDescription>{hospitalsError}</AlertDescription>
+              </Alert>
+            )}
+
+            <Form {...signupForm}>
               <form
                 onSubmit={signupForm.handleSubmit(onSignupSubmit)}
                 className="space-y-6"
+                key="signup-form"
               >
                 <FormField
                   control={signupForm.control}
@@ -279,37 +315,30 @@ export default function SignupPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        disabled={hospitalsLoading}
+                        key={hospitalsLoading ? 'loading' : `hospitals-${hospitals.length}`}
                       >
                         <FormControl>
                           <SelectTrigger className="h-12 border-2 border-gray-200 rounded-lg">
-                            <SelectValue placeholder="Select a hospital" />
+                            <SelectValue placeholder={hospitalsLoading ? "Loading hospitals..." : "Select a hospital"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="General Hospital North">
-                            General Hospital North
-                          </SelectItem>
-                          <SelectItem value="General Hospital South">
-                            General Hospital South
-                          </SelectItem>
-                          <SelectItem value="General Hospital East">
-                            General Hospital East
-                          </SelectItem>
-                          <SelectItem value="General Hospital West">
-                            General Hospital West
-                          </SelectItem>
-                          <SelectItem value="Central Medical Center">
-                            Central Medical Center
-                          </SelectItem>
-                          <SelectItem value="Regional Hospital A">
-                            Regional Hospital A
-                          </SelectItem>
-                          <SelectItem value="Regional Hospital B">
-                            Regional Hospital B
-                          </SelectItem>
-                          <SelectItem value="Metropolitan Hospital">
-                            Metropolitan Hospital
-                          </SelectItem>
+                          {hospitalsLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Loading hospitals...
+                            </SelectItem>
+                          ) : hospitals.length > 0 ? (
+                            hospitals.map((hospital) => (
+                              <SelectItem key={hospital.id} value={hospital.name}>
+                                {hospital.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-hospitals" disabled>
+                              No hospitals available
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
