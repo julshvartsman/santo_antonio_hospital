@@ -34,6 +34,7 @@ import { useApp } from "@/components/providers/AppProvider";
 import { supabase } from "@/lib/supabaseClient";
 import { assignHospitalToUser } from "@/lib/utils";
 import { useAllDepartments } from "@/hooks/useAllDepartments";
+import { useForms } from "@/hooks/useForms";
 
 interface User {
   id: string;
@@ -67,6 +68,14 @@ export default function AdminDashboard() {
     cumulativeMetrics,
     loading: departmentsLoading,
   } = useAllDepartments();
+
+  // Use the new hook for forms data
+  const {
+    forms: formsData,
+    loading: formsLoading,
+    error: formsError,
+    refresh: refreshForms,
+  } = useForms();
 
   useEffect(() => {
     fetchUsersAndHospitals();
@@ -572,6 +581,159 @@ export default function AdminDashboard() {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500">Loading metrics data...</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* All Forms Data - Admin View */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            All Hospital Submissions - Forms Data
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            View all form submissions from every hospital. Click "View Report" to see detailed metrics.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {formsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#225384] mx-auto"></div>
+              <p className="text-gray-500 mt-2">Loading forms data...</p>
+            </div>
+          ) : formsError ? (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Error loading forms data: {formsError}
+              </AlertDescription>
+            </Alert>
+          ) : formsData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No forms data found</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  Total Forms: {formsData.length} | 
+                  Submitted: {formsData.filter(f => f.submitted).length} | 
+                  Pending: {formsData.filter(f => !f.submitted).length}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshForms}
+                  className="flex items-center gap-2"
+                >
+                  <Activity className="h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
+              
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Hospital</TableHead>
+                    <TableHead>Department Head</TableHead>
+                    <TableHead>Month/Year</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted At</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {formsData.map((form) => (
+                    <TableRow key={form.id}>
+                      <TableCell className="font-medium">
+                        {form.hospital_name}
+                      </TableCell>
+                      <TableCell>
+                        {form.department_head ? (
+                          <div>
+                            <div className="font-medium">{form.department_head.name}</div>
+                            <div className="text-sm text-gray-500">{form.department_head.email}</div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">Not assigned</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(form.year, form.month - 1).toLocaleDateString('en-US', {
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {getSubmissionStatusIcon(form.submitted)}
+                          {getSubmissionStatusBadge(form.submitted, form.submitted_at || undefined)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {form.submitted_at ? (
+                          new Date(form.submitted_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        ) : (
+                          <span className="text-gray-500">Not submitted</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(form.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // Navigate to a detailed report view
+                              window.open(`/admin/report/${form.hospital_id}/${form.year}-${String(form.month).padStart(2, '0')}`, '_blank');
+                            }}
+                            className="flex items-center space-x-1"
+                          >
+                            <Activity className="h-3 w-3" />
+                            <span>View Report</span>
+                          </Button>
+                          {form.department_head?.email && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSendReminder(form.department_head!.email)}
+                              disabled={sendingReminder === form.department_head!.email}
+                              className="flex items-center space-x-1"
+                            >
+                              {sendingReminder === form.department_head!.email ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                                  <span>Sending...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Mail className="h-3 w-3" />
+                                  <span>Send Reminder</span>
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
