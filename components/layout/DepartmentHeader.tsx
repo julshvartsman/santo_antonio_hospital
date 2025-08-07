@@ -23,17 +23,11 @@ export default function DepartmentHeader() {
         <div className="flex items-center space-x-4">
           {/* Santo António Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#225384] to-[#1a4a6b] rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-[#225384]">
-                Santo António
-              </h1>
-              <p className="text-xs text-gray-500">
-                Centro Hospitalar Universitário
-              </p>
-            </div>
+            <img 
+              src="/images/santo-antonio logo.png" 
+              alt="Santo António Logo" 
+              className="h-12 w-auto"
+            />
           </div>
         </div>
 
