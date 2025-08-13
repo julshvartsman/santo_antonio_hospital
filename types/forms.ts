@@ -5,7 +5,7 @@ export interface Form {
   year: number;
   data: Record<string, number>; // map of metricKey → numeric value
   submitted: boolean;
-  submitted_at?: string;
+  submitted_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -15,7 +15,7 @@ export interface FormListEntry {
   month: number;
   year: number;
   submitted: boolean;
-  submitted_at?: string;
+  submitted_at?: string | null;
   form_name: string; // "Month Year" format
 }
 
