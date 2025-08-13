@@ -112,7 +112,7 @@ class AuthService {
               id: updatedProfile.id,
               email: updatedProfile.email,
               name: updatedProfile.full_name,
-              role: updatedProfile.role,
+              role: updatedProfile.role?.trim() || "department_head",
               hospital_id: updatedProfile.hospital_id,
             } as User;
           }
@@ -123,7 +123,7 @@ class AuthService {
         id: profile.id,
         email: profile.email,
         name: profile.full_name,
-        role: profile.role,
+        role: profile.role?.trim() || "department_head",
         hospital_id: profile.hospital_id,
       } as User;
     } catch (error) {
@@ -222,12 +222,7 @@ class AuthService {
         }
       }
 
-      console.log("=== DEBUG: getCurrentUser ===");
-      console.log("Session user ID:", session.user.id);
-      console.log("Session user email:", session.user.email);
-
       // Always fetch fresh data from database instead of using cache
-      console.log("Fetching fresh profile data...");
       const profilePromise = supabase
         .from("profiles")
         .select("*")
@@ -244,12 +239,6 @@ class AuthService {
         profilePromise,
         timeoutPromise,
       ])) as any;
-
-      console.log("=== DEBUG: Profile fetch ===");
-      console.log("Session user ID:", session.user.id);
-      console.log("Profile data:", profile);
-      console.log("Profile error:", profileError);
-      console.log("===========================");
 
       if (profileError) {
         console.error("Profile fetch error:", profileError);
@@ -313,11 +302,6 @@ class AuthService {
         role: profile.role,
         hospital_id: profile.hospital_id,
       } as User;
-
-      console.log("=== DEBUG: Constructed user object ===");
-      console.log("User object:", user);
-      console.log("User hospital_id:", user.hospital_id);
-      console.log("================================");
 
       // Cache the user with timestamp
       setToStorage("user", user);

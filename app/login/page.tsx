@@ -49,26 +49,7 @@ export default function LoginPage() {
     mode: "onChange", // Enable real-time validation
   });
 
-  useEffect(() => {
-    // Aggressively clear any corrupted session data
-    const clearCorruptedSession = async () => {
-      try {
-        console.log("Clearing any corrupted session data...");
-        // Force clear all local storage
-        localStorage.removeItem("cityx-hospital-auth-token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("user_cache_time");
-
-        // Force sign out to clear any server-side session
-        await supabase.auth.signOut();
-        console.log("Session cleared successfully");
-      } catch (error) {
-        console.error("Error clearing session:", error);
-      }
-    };
-
-    clearCorruptedSession();
-  }, []);
+  // Removed aggressive session clearing that was preventing login redirects
 
   const onLoginSubmit = async (data: LoginFormData) => {
     try {
@@ -78,25 +59,20 @@ export default function LoginPage() {
         password: data.password,
       };
 
-      console.log("=== LOGIN DEBUG START ===");
       const user = await login(credentials);
-      console.log("Login successful, user:", user);
-      console.log("User role:", user.role);
-      console.log("User hospital_id:", user.hospital_id);
 
-      // Enhanced redirect logic with better debugging
-      if (user.role === "admin" || user.role === "super_admin") {
-        console.log("Redirecting to admin dashboard");
-        router.push("/admin/dashboard");
-      } else if (user.role === "department_head") {
-        console.log("Redirecting to department dashboard");
-        router.push("/department/dashboard");
+      // Clean the role by trimming whitespace and newlines
+      const cleanRole = user.role?.trim();
+
+      // Redirect based on user role
+      if (cleanRole === "admin" || cleanRole === "super_admin") {
+        router.replace("/admin/dashboard");
+      } else if (cleanRole === "department_head") {
+        router.replace("/department/dashboard");
       } else {
-        console.log("Unknown role, defaulting to debug dashboard");
-        router.push("/debug-dashboard");
+        // Fallback for any unknown roles - default to department dashboard
+        router.replace("/department/dashboard");
       }
-
-      console.log("=== LOGIN DEBUG END ===");
     } catch (err) {
       console.error("Login error:", err);
       setError(err instanceof Error ? err.message : "An error occurred");

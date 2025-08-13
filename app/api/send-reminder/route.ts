@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+import { Resend } from "resend";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +46,7 @@ Please log in to the Hospital Sustainability Dashboard and submit your departmen
 - Energy usage (kWh)
 - Water consumption (m³)
 - CO₂ emissions
-- Other sustainability metrics
+- Waste management data
 
 If you have any questions or need assistance, please contact support through the help section.
 
@@ -56,55 +57,117 @@ Hospital Sustainability Team`;
 
     const emailBody = customMessage || defaultMessage;
 
-    // For now, we'll log the email and return success
-    // In production, you would integrate with an email service like SendGrid, AWS SES, or Resend
-    console.log("=== REMINDER EMAIL ===");
-    console.log("To:", departmentHeadEmail);
-    console.log("Subject:", emailSubject);
-    console.log("Body:", emailBody);
-    console.log("=====================");
+    // Create HTML version of the email
+    const htmlEmailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #225384; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">Hospital Sustainability Dashboard</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #225384; margin-top: 0;">Monthly Data Submission Reminder</h2>
+          
+          <p>Dear <strong>${departmentHead.full_name}</strong>,</p>
+          
+          <p>This is a friendly reminder that your monthly sustainability data for <strong>${currentMonth}</strong> is due.</p>
+          
+          <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #225384;">
+            <h3 style="color: #225384; margin-top: 0;">Required Metrics:</h3>
+            <ul style="color: #333;">
+              <li>Energy usage (kWh)</li>
+              <li>Water consumption (m³)</li>
+              <li>CO₂ emissions</li>
+              <li>Waste management data</li>
+            </ul>
+          </div>
+          
+          <p>Please log in to the <strong>Hospital Sustainability Dashboard</strong> and submit your department's metrics as soon as possible.</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${
+              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+            }/department/data-entry" 
+               style="background-color: #225384; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Submit Data Now
+            </a>
+          </div>
+          
+          <p style="color: #666; font-size: 14px;">
+            If you have any questions or need assistance, please contact support through the help section in the dashboard.
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          
+          <p style="color: #666; font-size: 14px;">
+            Thank you for your cooperation.<br>
+            <strong>Hospital Sustainability Team</strong>
+          </p>
+        </div>
+      </div>
+    `;
 
-    // Store the reminder in the database for record keeping
-    const { error: dbError } = await supabase.from("support_messages").insert({
-      from_name: "Hospital Sustainability Team",
-      from_email: "noreply@hospital.com",
-      from_phone: null,
-      message: `Reminder sent to ${departmentHead.full_name} (${departmentHeadEmail}) for ${currentMonth} data submission.`,
-      user_id: departmentHead.id,
-      status: "resolved",
-      admin_response: emailBody,
-      resolved_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    });
+    // Initialize Resend
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    if (dbError) {
-      console.error("Error storing reminder:", dbError);
-      // Don't fail the request if database storage fails
-    }
+    try {
+      // Send the email using Resend
+      const { data, error } = await resend.emails.send({
+        from: "Hospital Sustainability <onboarding@resend.dev>",
+        to: [departmentHeadEmail],
+        subject: emailSubject,
+        text: emailBody,
+        html: htmlEmailBody,
+      });
 
-    // TODO: In production, integrate with email service
-    // Example with SendGrid:
-    // const sgMail = require('@sendgrid/mail');
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    // await sgMail.send({
-    //   to: departmentHeadEmail,
-    //   from: 'noreply@yourhospital.com',
-    //   subject: emailSubject,
-    //   text: emailBody,
-    // });
+      if (error) {
+        console.error("Resend error:", error);
+        return NextResponse.json(
+          { error: "Failed to send email" },
+          { status: 500 }
+        );
+      }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Reminder sent successfully",
-        departmentHead: {
-          name: departmentHead.full_name,
-          email: departmentHeadEmail,
-          hospital: departmentHead.hospitals?.name || "Unknown",
+      console.log("Email sent successfully:", data);
+
+      // Store the reminder in the database for record keeping
+      const { error: dbError } = await supabase
+        .from("support_messages")
+        .insert({
+          from_name: "Hospital Sustainability Team",
+          from_email: "noreply@hospital.com",
+          from_phone: null,
+          message: `Reminder sent to ${departmentHead.full_name} (${departmentHeadEmail}) for ${currentMonth} data submission.`,
+          user_id: departmentHead.id,
+          status: "resolved",
+          admin_response: emailBody,
+          resolved_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        });
+
+      if (dbError) {
+        console.error("Error storing reminder:", dbError);
+        // Don't fail the request if database storage fails
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Reminder sent successfully",
+          departmentHead: {
+            name: departmentHead.full_name,
+            email: departmentHeadEmail,
+            hospital: departmentHead.hospitals?.name || "Unknown",
+          },
         },
-      },
-      { status: 200 }
-    );
+        { status: 200 }
+      );
+    } catch (emailError) {
+      console.error("Email sending error:", emailError);
+      return NextResponse.json(
+        { error: "Failed to send email" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error sending reminder:", error);
     return NextResponse.json(

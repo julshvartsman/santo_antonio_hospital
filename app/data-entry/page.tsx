@@ -32,10 +32,14 @@ import { format } from "date-fns";
 
 // Form validation schema
 const dataEntrySchema = z.object({
-  month_year: z.string().min(1, "Please enter a month and year (e.g., 'January 2024' or '2024-01')"),
+  month_year: z
+    .string()
+    .min(
+      1,
+      "Please enter a month and year (e.g., 'January 2024' or '2024-01')"
+    ),
   kwh_usage: z.number().min(0, "KWH usage must be a positive number"),
   water_usage_m3: z.number().min(0, "Water usage must be a positive number"),
-  co2_emissions: z.number().min(0, "CO2 emissions must be a positive number"),
   submitted: z.boolean().default(false),
 });
 
@@ -55,7 +59,6 @@ export default function DataEntryPage() {
       month_year: "",
       kwh_usage: 0,
       water_usage_m3: 0,
-      co2_emissions: 0,
       submitted: false,
     },
   });
@@ -70,14 +73,18 @@ export default function DataEntryPage() {
           .select("id")
           .limit(1);
         const endTime = Date.now();
-        
+
         if (error) {
           setConnectionStatus(`Connection error: ${error.message}`);
         } else {
           setConnectionStatus(`Connection OK (${endTime - startTime}ms)`);
         }
       } catch (err) {
-        setConnectionStatus(`Connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setConnectionStatus(
+          `Connection failed: ${
+            err instanceof Error ? err.message : "Unknown error"
+          }`
+        );
       }
     };
 
@@ -133,18 +140,27 @@ export default function DataEntryPage() {
           if (isNaN(date.getTime())) {
             throw new Error("Invalid date format");
           }
-          monthYearDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+          monthYearDate = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+          ).padStart(2, "0")}-01`;
         } else {
           // Try direct date parsing
           const date = new Date(dateStr);
           if (isNaN(date.getTime())) {
             throw new Error("Invalid date format");
           }
-          monthYearDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+          monthYearDate = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+          ).padStart(2, "0")}-01`;
         }
       } catch (dateError) {
-        throw new Error("Please enter a valid month and year (e.g., 'January 2024' or '2024-01')");
+        throw new Error(
+          "Please enter a valid month and year (e.g., 'January 2024' or '2024-01')"
+        );
       }
+
+      // Calculate CO₂ emissions automatically using standard emission factors
+      const co2_emissions = data.kwh_usage * 0.92 + data.water_usage_m3 * 0.344;
 
       // Prepare the data for submission - simplified
       const submissionData = {
@@ -153,7 +169,7 @@ export default function DataEntryPage() {
         month_year: monthYearDate,
         kwh_usage: data.kwh_usage,
         water_usage_m3: data.water_usage_m3,
-        co2_emissions: data.co2_emissions,
+        co2_emissions: co2_emissions,
         submitted: true,
         submitted_at: new Date().toISOString(),
       };
@@ -194,15 +210,18 @@ export default function DataEntryPage() {
       console.log("Data submitted successfully:", result);
       setSubmitSuccess(true);
       form.reset();
-      
+
       // Show success message for 3 seconds
       setTimeout(() => {
         setSubmitSuccess(false);
       }, 3000);
-
     } catch (err) {
       console.error("Submission error:", err);
-      setError(err instanceof Error ? err.message : "Failed to submit data. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to submit data. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -219,6 +238,13 @@ export default function DataEntryPage() {
           <p className="text-gray-600">
             Enter monthly sustainability metrics for your hospital
           </p>
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> CO₂ emissions are automatically calculated
+              from your electricity and water usage using industry-standard
+              emission factors.
+            </p>
+          </div>
         </div>
 
         {/* Success Alert */}
@@ -244,12 +270,16 @@ export default function DataEntryPage() {
           <CardHeader>
             <CardTitle>Monthly Sustainability Report</CardTitle>
             <CardDescription>
-              Enter your hospital's sustainability metrics for the selected month
+              Enter your hospital's sustainability metrics for the selected
+              month
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 {/* Month/Year Input */}
                 <FormField
                   control={form.control}
@@ -283,7 +313,9 @@ export default function DataEntryPage() {
                           placeholder="Enter KWH usage"
                           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -305,29 +337,9 @@ export default function DataEntryPage() {
                           placeholder="Enter water usage in cubic meters"
                           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* CO2 Emissions */}
-                <FormField
-                  control={form.control}
-                  name="co2_emissions"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CO2 Emissions</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="Enter CO2 emissions"
-                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -380,11 +392,18 @@ export default function DataEntryPage() {
                 <span className="font-medium">Role:</span> {user.role}
               </div>
               <div>
-                <span className="font-medium">Hospital ID:</span> {user.hospital_id || "Not assigned"}
+                <span className="font-medium">Hospital ID:</span>{" "}
+                {user.hospital_id || "Not assigned"}
               </div>
               <div>
                 <span className="font-medium">Database Connection:</span>{" "}
-                <span className={connectionStatus.includes("OK") ? "text-green-600" : "text-red-600"}>
+                <span
+                  className={
+                    connectionStatus.includes("OK")
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }
+                >
                   {connectionStatus || "Testing..."}
                 </span>
               </div>
@@ -397,29 +416,38 @@ export default function DataEntryPage() {
           <CardHeader>
             <CardTitle className="text-lg">Network Diagnostics</CardTitle>
             <CardDescription>
-              This helps identify if the issue is with your connection or the application
+              This helps identify if the issue is with your connection or the
+              application
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Internet Connection:</span>
+                <span className="text-sm font-medium">
+                  Internet Connection:
+                </span>
                 <span className="text-sm text-green-600">✓ Online</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Supabase URL:</span>
                 <span className="text-sm text-gray-600">
-                  {process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓ Configured" : "✗ Missing"}
+                  {process.env.NEXT_PUBLIC_SUPABASE_URL
+                    ? "✓ Configured"
+                    : "✗ Missing"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">API Key:</span>
                 <span className="text-sm text-gray-600">
-                  {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓ Configured" : "✗ Missing"}
+                  {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                    ? "✓ Configured"
+                    : "✗ Missing"}
                 </span>
               </div>
               <div className="text-xs text-gray-500 mt-4">
-                <p><strong>If you're experiencing slow performance:</strong></p>
+                <p>
+                  <strong>If you're experiencing slow performance:</strong>
+                </p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Check your WiFi connection speed</li>
                   <li>Try refreshing the page</li>

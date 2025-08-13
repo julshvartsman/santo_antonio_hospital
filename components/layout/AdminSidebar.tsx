@@ -9,11 +9,9 @@ import { useApp } from "@/components/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import {
   HomeIcon,
-  Upload,
   BarChart3,
   BellIcon,
   CogIcon,
-  HelpCircle,
   LogOut,
   MessageCircle,
 } from "lucide-react";
@@ -21,7 +19,6 @@ import {
 const menu = [
   { href: "/admin/dashboard", label: "menu.dashboard", icon: HomeIcon },
   { href: "/admin/data-analysis", label: "menu.dataAnalysis", icon: BarChart3 },
-  { href: "/admin/file-upload", label: "menu.fileUpload", icon: Upload },
   { href: "/admin/notifications", label: "menu.notifications", icon: BellIcon },
   {
     href: "/admin/support-messages",
@@ -32,7 +29,6 @@ const menu = [
 
 const others = [
   { href: "/admin/settings", label: "menu.settings", icon: CogIcon },
-  { href: "/admin/contact", label: "menu.contact", icon: HelpCircle },
 ];
 
 export default function AdminSidebar() {

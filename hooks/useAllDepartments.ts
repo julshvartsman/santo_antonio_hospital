@@ -175,12 +175,20 @@ export function useAllDepartments() {
           const current_month_totals = {
             kwh_usage: currentEntry?.kwh_usage || 0,
             water_usage_m3: currentEntry?.water_usage_m3 || 0,
+            waste_type1: currentEntry?.waste_type1 || 0,
+            waste_type2: currentEntry?.waste_type2 || 0,
+            waste_type3: currentEntry?.waste_type3 || 0,
+            waste_type4: currentEntry?.waste_type4 || 0,
             co2_emissions: currentEntry?.co2_emissions || 0,
           };
 
           const previous_month_totals = {
             kwh_usage: previousEntry?.kwh_usage || 0,
             water_usage_m3: previousEntry?.water_usage_m3 || 0,
+            waste_type1: previousEntry?.waste_type1 || 0,
+            waste_type2: previousEntry?.waste_type2 || 0,
+            waste_type3: previousEntry?.waste_type3 || 0,
+            waste_type4: previousEntry?.waste_type4 || 0,
             co2_emissions: previousEntry?.co2_emissions || 0,
           };
 
@@ -406,12 +414,17 @@ export function useAllDepartments() {
 
       console.log(`Sending reminder to ${departmentHeadId}: ${message}`);
 
-      // You could also create a notification record in the database
-      await supabase.from("notifications").insert({
+      // Optionally: instead of writing to a notifications table, also write a support message entry
+      // so it shows up in the computed notifications API as a "Reminder sent" info item.
+      await supabase.from("support_messages").insert({
+        from_name: "Hospital Sustainability Team",
+        from_email: "noreply@hospital.com",
+        from_phone: null,
+        message: `Reminder: ${message}`,
         user_id: departmentHeadId,
-        type: "reminder",
-        title: "Monthly Submission Reminder",
-        message: message,
+        status: "resolved",
+        admin_response: message,
+        resolved_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
       });
 

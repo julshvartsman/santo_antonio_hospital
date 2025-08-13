@@ -131,7 +131,7 @@ export async function middleware(request: NextRequest) {
   }
 }
 
-// Temporarily disable matcher to fix auth issues
+// Temporarily disable middleware to test login redirect
 export const config = {
   matcher: [],
 };

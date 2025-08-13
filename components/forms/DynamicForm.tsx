@@ -66,15 +66,6 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
     min: 0,
     description: "Type 4 waste residuals for the month",
   },
-  {
-    key: "co2_emissions",
-    label: "CO2 Emissions",
-    unit: "kg CO2e",
-    type: "number",
-    required: false,
-    min: 0,
-    description: "CO2 emissions calculated from other metrics",
-  },
 ];
 
 interface DynamicFormProps {
@@ -116,7 +107,10 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     SUSTAINABILITY_METRICS.forEach((metric) => {
       const value = formData[metric.key];
 
-      if (metric.required && (value === undefined || value === null || value === 0)) {
+      if (
+        metric.required &&
+        (value === undefined || value === null || value === 0)
+      ) {
         newErrors[metric.key] = `${metric.label} is required`;
       } else if (value !== undefined && value !== null) {
         if (metric.min !== undefined && value < metric.min) {
@@ -139,7 +133,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   const handleInputChange = (key: string, value: string) => {
     const numValue = value === "" ? 0 : parseFloat(value);
     const finalValue = isNaN(numValue) ? 0 : numValue;
-    
+
     setFormData((prev) => ({
       ...prev,
       [key]: finalValue,

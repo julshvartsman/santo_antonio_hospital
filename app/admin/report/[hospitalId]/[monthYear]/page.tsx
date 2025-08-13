@@ -6,7 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Download, TrendingUp, TrendingDown, Activity, Shield } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  ArrowLeft,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Shield,
+  Edit,
+  Save,
+  X,
+} from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -33,53 +45,76 @@ export default function HospitalReportPage() {
   const { user, isLoading: authLoading } = useAuth();
   const hospitalId = params.hospitalId as string;
   const monthYear = params.monthYear as string;
-  
+
   console.log("Report page params:", { hospitalId, monthYear, params });
-  
+
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableData, setEditableData] = useState<ReportData | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     // Check authentication first
     if (authLoading) return;
-    
+
     if (!user) {
-      router.push('/login');
-      return;
+      // Add a small delay to ensure auth state is properly initialized
+      const timer = setTimeout(() => {
+        if (!user) {
+          router.push("/login");
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
-    
+
     // Check if user is admin and fetch data
     const checkAdminAndFetchData = async () => {
       try {
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
           .single();
-        
+
         if (profileError) {
           console.error("Profile error:", profileError);
-          setError('Error checking admin status. Please try again.');
+          setError("Error checking admin status. Please try again.");
           setLoading(false);
           return;
         }
-        
-        if (!profile || profile.role !== 'admin') {
-          setError('Access denied. Admin privileges required.');
+
+        console.log("User role from profile:", profile?.role);
+        console.log("User role from auth:", user.role);
+
+        // Check both the profile role and the auth user role
+        const hasAdminAccess =
+          profile?.role === "admin" ||
+          profile?.role === "super_admin" ||
+          user.role === "admin" ||
+          user.role === "super_admin";
+
+        if (!hasAdminAccess) {
+          setError(
+            `Access denied. Admin privileges required. Current role: ${
+              profile?.role || user.role
+            }`
+          );
           setLoading(false);
           return;
         }
-        
+
         // If admin, fetch the report data
         await fetchReportData();
       } catch (error) {
         console.error("Error in admin check:", error);
-        setError('Error checking permissions. Please try again.');
+        setError("Error checking permissions. Please try again.");
         setLoading(false);
       }
     };
-    
+
     checkAdminAndFetchData();
   }, [user, authLoading, hospitalId, monthYear, router]);
 
@@ -90,27 +125,29 @@ export default function HospitalReportPage() {
       setError(null);
 
       // Parse month and year from the URL parameter
-      const [year, month] = monthYear.split('-').map(Number);
+      const [year, month] = monthYear.split("-").map(Number);
       console.log("Parsed params:", { hospitalId, year, month, monthYear });
-      
+
       // First try to fetch from entries table (which has the actual metrics data)
       console.log("Trying to fetch from entries table...");
-      const monthYearKey = `${year}-${String(month).padStart(2, '0')}-01`;
+      const monthYearKey = `${year}-${String(month).padStart(2, "0")}-01`;
       console.log("Fetching from entries with key:", monthYearKey);
-      
+
       const { data: entriesData, error: entriesError } = await supabase
         .from("entries")
-        .select(`
+        .select(
+          `
           *,
           hospitals!hospital_id (
             name
           )
-        `)
+        `
+        )
         .eq("hospital_id", hospitalId)
         .eq("month_year", monthYearKey)
         .single();
 
-      if (entriesError && !entriesError.message.includes('No rows returned')) {
+      if (entriesError && !entriesError.message.includes("No rows returned")) {
         console.error("Entries table error:", entriesError);
         throw entriesError;
       }
@@ -120,18 +157,20 @@ export default function HospitalReportPage() {
         console.log("No entries data found, trying forms table...");
         const { data: formData, error: formError } = await supabase
           .from("forms")
-          .select(`
+          .select(
+            `
             *,
             hospitals!hospital_id (
               name
             )
-          `)
+          `
+          )
           .eq("hospital_id", hospitalId)
           .eq("month", month)
           .eq("year", year)
           .single();
 
-        if (formError && !formError.message.includes('No rows returned')) {
+        if (formError && !formError.message.includes("No rows returned")) {
           console.error("Forms table error:", formError);
           throw formError;
         }
@@ -157,7 +196,9 @@ export default function HospitalReportPage() {
           });
         } else {
           console.log("No data found in either table");
-          setError("No data found for this hospital and month. The report may not exist yet or the data hasn't been submitted.");
+          setError(
+            "No data found for this hospital and month. The report may not exist yet or the data hasn't been submitted."
+          );
         }
       } else {
         // Use entries data (has both metrics and submission status)
@@ -189,12 +230,15 @@ export default function HospitalReportPage() {
 
   const handleDownloadReport = () => {
     if (!reportData) return;
-    
+
     // Create a CSV report
     const csvContent = [
       "Hospital Report",
       `Hospital: ${reportData.hospital_name}`,
-      `Month/Year: ${new Date(reportData.year, reportData.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
+      `Month/Year: ${new Date(
+        reportData.year,
+        reportData.month - 1
+      ).toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
       "",
       "Metric,Value,Unit",
       `Electricity Usage,${reportData.kwh_usage},kWh`,
@@ -205,19 +249,88 @@ export default function HospitalReportPage() {
       `Type 4 Waste,${reportData.waste_type4},kg`,
       `CO₂ Emissions,${reportData.co2_emissions},kg CO₂e`,
       "",
-      `Submission Status,${reportData.submitted ? 'Submitted' : 'Pending'}`,
-      reportData.submitted_at ? `Submitted At,${new Date(reportData.submitted_at).toLocaleString()}` : "",
-    ].filter(Boolean).join('\n');
+      `Submission Status,${reportData.submitted ? "Submitted" : "Pending"}`,
+      reportData.submitted_at
+        ? `Submitted At,${new Date(reportData.submitted_at).toLocaleString()}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${reportData.hospital_name}_${reportData.year}-${String(reportData.month).padStart(2, '0')}_report.csv`;
+    a.download = `${reportData.hospital_name}_${reportData.year}-${String(
+      reportData.month
+    ).padStart(2, "0")}_report.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleEdit = () => {
+    if (reportData) {
+      setEditableData({ ...reportData });
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditableData(null);
+  };
+
+  const handleSave = async () => {
+    if (!editableData) return;
+
+    try {
+      setSaving(true);
+
+      // Update the entries table
+      const monthYearKey = `${editableData.year}-${String(
+        editableData.month
+      ).padStart(2, "0")}-01`;
+
+      const { error } = await supabase.from("entries").upsert({
+        hospital_id: hospitalId,
+        month_year: monthYearKey,
+        kwh_usage: editableData.kwh_usage,
+        water_usage_m3: editableData.water_usage_m3,
+        waste_type1: editableData.waste_type1,
+        waste_type2: editableData.waste_type2,
+        waste_type3: editableData.waste_type3,
+        waste_type4: editableData.waste_type4,
+        co2_emissions: editableData.co2_emissions,
+        submitted: editableData.submitted,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      setReportData(editableData);
+      setIsEditing(false);
+      setEditableData(null);
+
+      // Show success message
+      alert("Report updated successfully!");
+    } catch (err: any) {
+      console.error("Error updating report:", err);
+      alert("Error updating report: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof ReportData, value: number) => {
+    if (editableData) {
+      setEditableData({
+        ...editableData,
+        [field]: value,
+      });
+    }
   };
 
   if (authLoading || loading) {
@@ -227,26 +340,36 @@ export default function HospitalReportPage() {
         <p className="text-gray-500 mt-2">
           {authLoading ? "Checking authentication..." : "Loading report..."}
         </p>
+        {authLoading && (
+          <p className="text-sm text-gray-400 mt-1">
+            Please wait while we verify your session...
+          </p>
+        )}
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto p-6">
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            Please log in to access this page.
+            Please log in to access this page. If you were already logged in,
+            your session may have expired.
           </AlertDescription>
         </Alert>
-        <Button
-          variant="outline"
-          onClick={() => router.push('/login')}
-          className="mt-4"
-        >
-          Go to Login
-        </Button>
+        <div className="mt-4 space-x-2">
+          <Button variant="outline" onClick={() => router.push("/login")}>
+            Go to Login
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/dashboard")}
+          >
+            Back to Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
@@ -297,9 +420,12 @@ export default function HospitalReportPage() {
               {reportData.hospital_name} - Sustainability Report
             </h1>
             <p className="text-gray-600 mt-2">
-              {new Date(reportData.year, reportData.month - 1).toLocaleDateString('en-US', {
-                month: 'long',
-                year: 'numeric'
+              {new Date(
+                reportData.year,
+                reportData.month - 1
+              ).toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
               })}
             </p>
           </div>
@@ -307,10 +433,43 @@ export default function HospitalReportPage() {
             <Badge variant={reportData.submitted ? "default" : "secondary"}>
               {reportData.submitted ? "Submitted" : "Pending"}
             </Badge>
-            <Button onClick={handleDownloadReport} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download Report
-            </Button>
+            {!isEditing ? (
+              <>
+                <Button
+                  onClick={handleEdit}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Report
+                </Button>
+                <Button
+                  onClick={handleDownloadReport}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Report
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -319,7 +478,8 @@ export default function HospitalReportPage() {
           <Alert>
             <Activity className="h-4 w-4" />
             <AlertDescription>
-              Report submitted on {new Date(reportData.submitted_at).toLocaleString()}
+              Report submitted on{" "}
+              {new Date(reportData.submitted_at).toLocaleString()}
             </AlertDescription>
           </Alert>
         )}
@@ -335,10 +495,30 @@ export default function HospitalReportPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">
-                {reportData.kwh_usage.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">kWh</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="kwh_usage">kWh</Label>
+                  <Input
+                    id="kwh_usage"
+                    type="number"
+                    value={editableData.kwh_usage}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "kwh_usage",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {reportData.kwh_usage.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kWh</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -351,10 +531,30 @@ export default function HospitalReportPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-500">
-                {reportData.water_usage_m3.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">m³</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="water_usage_m3">m³</Label>
+                  <Input
+                    id="water_usage_m3"
+                    type="number"
+                    value={editableData.water_usage_m3}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "water_usage_m3",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-blue-500">
+                    {reportData.water_usage_m3.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">m³</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -367,10 +567,30 @@ export default function HospitalReportPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-orange-600">
-                {reportData.co2_emissions.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">kg CO₂e</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="co2_emissions">kg CO₂e</Label>
+                  <Input
+                    id="co2_emissions"
+                    type="number"
+                    value={editableData.co2_emissions}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "co2_emissions",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-orange-600">
+                    {reportData.co2_emissions.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kg CO₂e</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -380,10 +600,30 @@ export default function HospitalReportPage() {
               <CardTitle className="text-red-600">Type 1 Waste</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-600">
-                {reportData.waste_type1.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">kg</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="waste_type1">kg</Label>
+                  <Input
+                    id="waste_type1"
+                    type="number"
+                    value={editableData.waste_type1}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "waste_type1",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-red-600">
+                    {reportData.waste_type1.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kg</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -393,10 +633,30 @@ export default function HospitalReportPage() {
               <CardTitle className="text-purple-600">Type 2 Waste</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">
-                {reportData.waste_type2.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">kg</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="waste_type2">kg</Label>
+                  <Input
+                    id="waste_type2"
+                    type="number"
+                    value={editableData.waste_type2}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "waste_type2",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-purple-600">
+                    {reportData.waste_type2.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kg</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -406,10 +666,30 @@ export default function HospitalReportPage() {
               <CardTitle className="text-yellow-600">Type 3 Waste</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">
-                {reportData.waste_type3.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">kg</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="waste_type3">kg</Label>
+                  <Input
+                    id="waste_type3"
+                    type="number"
+                    value={editableData.waste_type3}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "waste_type3",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-yellow-600">
+                    {reportData.waste_type3.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kg</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -419,10 +699,30 @@ export default function HospitalReportPage() {
               <CardTitle className="text-pink-600">Type 4 Waste</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-pink-600">
-                {reportData.waste_type4.toLocaleString()}
-              </div>
-              <p className="text-sm text-gray-500">kg</p>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="waste_type4">kg</Label>
+                  <Input
+                    id="waste_type4"
+                    type="number"
+                    value={editableData.waste_type4}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "waste_type4",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-pink-600">
+                    {reportData.waste_type4.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kg</p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -435,16 +735,51 @@ export default function HospitalReportPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <p><strong>Hospital:</strong> {reportData.hospital_name}</p>
-                <p><strong>Period:</strong> {new Date(reportData.year, reportData.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-                <p><strong>Total Energy:</strong> {reportData.kwh_usage.toLocaleString()} kWh</p>
-                <p><strong>Total Water:</strong> {reportData.water_usage_m3.toLocaleString()} m³</p>
+                <p>
+                  <strong>Hospital:</strong> {reportData.hospital_name}
+                </p>
+                <p>
+                  <strong>Period:</strong>{" "}
+                  {new Date(
+                    reportData.year,
+                    reportData.month - 1
+                  ).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+                <p>
+                  <strong>Total Energy:</strong>{" "}
+                  {reportData.kwh_usage.toLocaleString()} kWh
+                </p>
+                <p>
+                  <strong>Total Water:</strong>{" "}
+                  {reportData.water_usage_m3.toLocaleString()} m³
+                </p>
               </div>
               <div>
-                <p><strong>Total Waste:</strong> {(reportData.waste_type1 + reportData.waste_type2 + reportData.waste_type3 + reportData.waste_type4).toLocaleString()} kg</p>
-                <p><strong>CO₂ Emissions:</strong> {reportData.co2_emissions.toLocaleString()} kg CO₂e</p>
-                <p><strong>Status:</strong> {reportData.submitted ? 'Submitted' : 'Pending'}</p>
-                <p><strong>Last Updated:</strong> {new Date(reportData.updated_at).toLocaleString()}</p>
+                <p>
+                  <strong>Total Waste:</strong>{" "}
+                  {(
+                    reportData.waste_type1 +
+                    reportData.waste_type2 +
+                    reportData.waste_type3 +
+                    reportData.waste_type4
+                  ).toLocaleString()}{" "}
+                  kg
+                </p>
+                <p>
+                  <strong>CO₂ Emissions:</strong>{" "}
+                  {reportData.co2_emissions.toLocaleString()} kg CO₂e
+                </p>
+                <p>
+                  <strong>Status:</strong>{" "}
+                  {reportData.submitted ? "Submitted" : "Pending"}
+                </p>
+                <p>
+                  <strong>Last Updated:</strong>{" "}
+                  {new Date(reportData.updated_at).toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -452,4 +787,4 @@ export default function HospitalReportPage() {
       </div>
     </div>
   );
-} 
+}

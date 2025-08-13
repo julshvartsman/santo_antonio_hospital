@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -11,75 +11,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bell, CheckCircle, AlertTriangle, Info, X } from "lucide-react";
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: "info" | "warning" | "success" | "error";
-  timestamp: Date;
-  read: boolean;
-}
+import { useApp } from "@/components/providers/AppProvider";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "Monthly Report Due",
-      message: "Your monthly sustainability metrics report is due in 3 days.",
-      type: "warning",
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      read: false,
-    },
-    {
-      id: "2",
-      title: "Data Submission Successful",
-      message:
-        "Your sustainability metrics for March 2024 have been successfully submitted.",
-      type: "success",
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      read: true,
-    },
-    {
-      id: "3",
-      title: "System Maintenance",
-      message:
-        "The sustainability tracking system will be under maintenance on Sunday from 2-4 AM.",
-      type: "info",
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      read: true,
-    },
-    {
-      id: "4",
-      title: "New Features Available",
-      message: "New data export features are now available in your dashboard.",
-      type: "info",
-      timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-      read: false,
-    },
-  ]);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, read: true }))
-    );
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
-    );
-  };
+  const { language } = useApp();
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    error,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications({ scope: "user" });
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -112,19 +57,23 @@ export default function NotificationsPage() {
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {language.t("dept.notifications.title")}
+          </h1>
           <p className="text-gray-600 mt-2">
-            Stay updated with important messages and alerts
+            {language.t("dept.notifications.subtitle")}
           </p>
         </div>
         <div className="flex items-center space-x-4">
           <Badge variant="secondary" className="flex items-center space-x-2">
             <Bell className="h-4 w-4" />
-            <span>{unreadCount} unread</span>
+            <span>
+              {unreadCount} {language.t("dept.notifications.unread")}
+            </span>
           </Badge>
           {unreadCount > 0 && (
             <Button variant="outline" onClick={markAllAsRead}>
-              Mark all as read
+              {language.t("buttons.markAllRead")}
             </Button>
           )}
         </div>
@@ -132,15 +81,27 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       <div className="space-y-4">
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-12">
+              {language.t("dept.notifications.loading")}
+            </CardContent>
+          </Card>
+        ) : error ? (
+          <Card>
+            <CardContent className="py-12 text-red-700">
+              {language.t("dept.notifications.failed")}: {error}
+            </CardContent>
+          </Card>
+        ) : notifications.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Bell className="h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No notifications
+                {language.t("dept.notifications.none")}
               </h3>
               <p className="text-gray-500 text-center">
-                You're all caught up! Check back later for new updates.
+                {language.t("dept.notifications.caughtUp")}
               </p>
             </CardContent>
           </Card>
@@ -149,7 +110,7 @@ export default function NotificationsPage() {
             <Card
               key={notification.id}
               className={`transition-all duration-200 ${
-                !notification.read
+                !notification.isRead
                   ? "border-l-4 border-l-blue-500 bg-blue-50"
                   : ""
               }`}
@@ -172,12 +133,12 @@ export default function NotificationsPage() {
                         >
                           {notification.type}
                         </Badge>
-                        {!notification.read && (
+                        {!notification.isRead && (
                           <Badge
                             variant="secondary"
                             className="bg-blue-100 text-blue-800"
                           >
-                            New
+                            {language.t("dept.notifications.new")}
                           </Badge>
                         )}
                       </div>
@@ -186,22 +147,25 @@ export default function NotificationsPage() {
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500">
-                          {notification.timestamp.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(notification.createdAt).toLocaleDateString(
+                            language.language === "pt" ? "pt-PT" : "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
                         </span>
                         <div className="flex items-center space-x-2">
-                          {!notification.read && (
+                          {!notification.isRead && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => markAsRead(notification.id)}
                               className="text-blue-600 hover:text-blue-700"
                             >
-                              Mark as read
+                              {language.t("buttons.markAsRead")}
                             </Button>
                           )}
                           <Button

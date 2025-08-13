@@ -104,7 +104,9 @@ export default function DepartmentDashboard() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#225384] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-gray-600">
+            {language.t("common.loadingDashboard")}
+          </p>
         </div>
       </div>
     );
@@ -115,10 +117,12 @@ export default function DepartmentDashboard() {
       <div className="space-y-6">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>Error loading your data: {error}</AlertDescription>
+          <AlertDescription>
+            {language.t("common.loadingData")} {error}
+          </AlertDescription>
         </Alert>
         <Button onClick={refresh} className="mt-4">
-          Try Again
+          {language.t("common.tryAgain")}
         </Button>
       </div>
     );
@@ -152,10 +156,10 @@ export default function DepartmentDashboard() {
             <div className="text-center space-y-4">
               <FileText className="h-12 w-12 text-blue-600 mx-auto" />
               <h2 className="text-xl font-semibold text-gray-900">
-                Data Entry & Reports
+                {language.t("dept.dashboard.dataEntryReports")}
               </h2>
               <p className="text-gray-600">
-                Enter monthly metrics and view reports
+                {language.t("dept.dashboard.enterMonthly")}
               </p>
               <Button
                 size="lg"
@@ -163,12 +167,11 @@ export default function DepartmentDashboard() {
                 className="flex items-center space-x-2 mx-auto bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <ArrowRight className="h-5 w-5" />
-                <span>Go to Data Entry</span>
+                <span>{language.t("buttons.goToDataEntry")}</span>
               </Button>
             </div>
           </CardContent>
         </Card>
-
       </div>
 
       {/* Submission Status Banner */}
@@ -177,8 +180,9 @@ export default function DepartmentDashboard() {
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              <strong>Metrics Submitted</strong> - You submitted your metrics
-              for {currentMonthName} on{" "}
+              <strong>{language.t("dept.dashboard.metricsSubmitted")}</strong>
+              {" - "}
+              {language.t("dept.dashboard.enterMonthly")} {currentMonthName}{" "}
               {data.submission_status.submitted_at &&
                 new Date(
                   data.submission_status.submitted_at
@@ -194,14 +198,15 @@ export default function DepartmentDashboard() {
           <Alert className="border-yellow-200 bg-yellow-50">
             <Clock className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800">
-              <strong>Submission Pending</strong> - You haven't submitted your
-              metrics for {currentMonthName} yet.{" "}
+              <strong>{language.t("dept.dashboard.submissionPending")}</strong>
+              {" - "}
+              {language.t("dept.dashboard.enterMonthly")} {currentMonthName}{" "}
               <Button
                 variant="link"
                 className="p-0 h-auto text-yellow-800 underline"
                 onClick={() => router.push("/department/data-entry")}
               >
-                Click here to submit now
+                {language.t("dept.dashboard.submitNow")}
               </Button>
             </AlertDescription>
           </Alert>
@@ -211,9 +216,9 @@ export default function DepartmentDashboard() {
       {/* Energy Trend Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>12-Month Energy Trend</CardTitle>
+          <CardTitle>{language.t("dept.dashboard.energyTrendTitle")}</CardTitle>
           <CardDescription>
-            Your hospital's energy usage over the past year
+            {language.t("dept.dashboard.energyTrendDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -221,14 +226,18 @@ export default function DepartmentDashboard() {
             <Sparkline data={sparklineData} />
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-sm text-gray-500">Current</div>
+                <div className="text-sm text-gray-500">
+                  {language.t("common.current")}
+                </div>
                 <div className="text-lg font-semibold">
                   {data.current_month_entry?.kwh_usage.toLocaleString() || "0"}{" "}
                   kWh
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Average</div>
+                <div className="text-sm text-gray-500">
+                  {language.t("common.average")}
+                </div>
                 <div className="text-lg font-semibold">
                   {Math.round(
                     sparklineData.reduce((a, b) => a + b, 0) /
@@ -238,7 +247,9 @@ export default function DepartmentDashboard() {
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Peak</div>
+                <div className="text-sm text-gray-500">
+                  {language.t("common.peak")}
+                </div>
                 <div className="text-lg font-semibold">
                   {Math.max(...sparklineData, 0).toLocaleString()} kWh
                 </div>
@@ -253,7 +264,7 @@ export default function DepartmentDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-500">
-              Total Entries
+              {language.t("dept.dashboard.totalEntries")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -261,7 +272,7 @@ export default function DepartmentDashboard() {
               {data.historical_entries.length}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Monthly reports submitted
+              {language.t("dept.dashboard.entriesSubtitle")}
             </p>
           </CardContent>
         </Card>
@@ -269,7 +280,7 @@ export default function DepartmentDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-500">
-              Average Energy Usage
+              {language.t("dept.dashboard.avgEnergy")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -280,14 +291,16 @@ export default function DepartmentDashboard() {
               ).toLocaleString()}{" "}
               kWh
             </div>
-            <p className="text-xs text-gray-500 mt-1">Monthly average</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {language.t("dept.dashboard.monthlyAverage")}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-500">
-              Last Updated
+              {language.t("dept.dashboard.lastUpdated")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -296,9 +309,11 @@ export default function DepartmentDashboard() {
                 ? new Date(
                     data.current_month_entry.updated_at
                   ).toLocaleDateString()
-                : "Never"}
+                : language.t("common.never")}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Last data entry</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {language.t("dept.dashboard.lastDataEntry")}
+            </p>
           </CardContent>
         </Card>
       </div>

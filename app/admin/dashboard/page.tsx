@@ -29,12 +29,14 @@ import {
   Mail,
   Clock,
   CheckCircle,
+  MessageCircle,
 } from "lucide-react";
 import { useApp } from "@/components/providers/AppProvider";
 import { supabase } from "@/lib/supabaseClient";
 import { assignHospitalToUser } from "@/lib/utils";
 import { useAllDepartments } from "@/hooks/useAllDepartments";
 import { useForms } from "@/hooks/useForms";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -52,6 +54,7 @@ interface Hospital {
 
 export default function AdminDashboard() {
   const { language } = useApp();
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,6 +197,20 @@ export default function AdminDashboard() {
     }
   };
 
+  const openWhatsApp = (phone: string, hospitalName: string) => {
+    if (!phone) return;
+    const digits = phone.replace(/\D/g, "");
+    const now = new Date();
+    const monthName = now.toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
+    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const text = `Reminder: Please submit your monthly sustainability data for ${hospitalName} (${monthName}). ${appUrl}`;
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Title */}
@@ -230,45 +247,51 @@ export default function AdminDashboard() {
         </Alert>
       )}
 
-      {/* Alert */}
-      <Alert>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription className="flex items-center justify-between">
-          <span>15 Days Left Until Monthly Report Due</span>
-          <Button variant="outline" size="sm">
-            Notify Team
-          </Button>
-        </AlertDescription>
-      </Alert>
-
       {/* Department Heads Management Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Department Heads - Submission Status & Reminders
+            {language.t("admin.dashboard.deptSectionTitle")}
           </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">
+            {language.t("admin.dashboard.deptSectionHelp")}
+          </p>
         </CardHeader>
         <CardContent>
           {departmentsLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#225384] mx-auto"></div>
-              <p className="text-gray-500 mt-2">Loading department heads...</p>
+              <p className="text-gray-500 mt-2">
+                {language.t("admin.common.loadingDepartments")}
+              </p>
             </div>
           ) : departmentData.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No department heads found</p>
+              <p className="text-gray-500">
+                {language.t("admin.common.noDepartments")}
+              </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Hospital</TableHead>
-                  <TableHead>Department Head</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Submission Status</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>
+                    {language.t("admin.forms.table.hospital")}
+                  </TableHead>
+                  <TableHead>
+                    {language.t("admin.forms.table.deptHead")}
+                  </TableHead>
+                  <TableHead>{language.t("admin.users.table.email")}</TableHead>
+                  <TableHead>
+                    {language.t("admin.forms.table.status")}
+                  </TableHead>
+                  <TableHead>
+                    {language.t("dept.dashboard.lastUpdated")}
+                  </TableHead>
+                  <TableHead>
+                    {language.t("admin.dashboard.sendReminder")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -278,10 +301,12 @@ export default function AdminDashboard() {
                       {hospital.name}
                     </TableCell>
                     <TableCell>
-                      {hospital.department_head?.name || "Not assigned"}
+                      {hospital.department_head?.name ||
+                        language.t("admin.common.notAssigned")}
                     </TableCell>
                     <TableCell>
-                      {hospital.department_head?.email || "N/A"}
+                      {hospital.department_head?.email ||
+                        language.t("admin.common.na")}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -305,35 +330,72 @@ export default function AdminDashboard() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        {hospital.department_head?.email && (
+                        {hospital.department_head?.email ? (
                           <Button
-                            variant="outline"
+                            variant={
+                              hospital.submission_status.submitted
+                                ? "outline"
+                                : "default"
+                            }
                             size="sm"
                             onClick={() =>
                               handleSendReminder(hospital.department_head.email)
                             }
                             disabled={
-                              sendingReminder === hospital.department_head.email
+                              sendingReminder ===
+                                hospital.department_head.email ||
+                              hospital.submission_status.submitted
                             }
-                            className="flex items-center space-x-1"
+                            className={`flex items-center space-x-1 ${
+                              hospital.submission_status.submitted
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:bg-blue-600"
+                            }`}
                           >
                             {sendingReminder ===
                             hospital.department_head.email ? (
                               <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                                 <span>Sending...</span>
+                              </>
+                            ) : hospital.submission_status.submitted ? (
+                              <>
+                                <CheckCircle className="h-3 w-3" />
+                                <span>
+                                  {language.t("admin.dashboard.submitted")}
+                                </span>
                               </>
                             ) : (
                               <>
                                 <Mail className="h-3 w-3" />
-                                <span>Send Reminder</span>
+                                <span>
+                                  {language.t("admin.dashboard.sendReminder")}
+                                </span>
                               </>
                             )}
                           </Button>
+                        ) : (
+                          <div className="text-sm text-gray-500">
+                            {language.t("admin.common.notAssigned")}
+                          </div>
                         )}
-                        <Button variant="outline" size="sm">
-                          View Details
-                        </Button>
+                        {hospital.department_head?.phone &&
+                          !hospital.submission_status.submitted && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                openWhatsApp(
+                                  hospital.department_head!.phone as string,
+                                  hospital.name
+                                )
+                              }
+                              className="flex items-center space-x-1"
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                              <span>WhatsApp</span>
+                            </Button>
+                          )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -349,19 +411,21 @@ export default function AdminDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            User Management - Hospital Assignment
+            {language.t("admin.users.sectionTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#225384] mx-auto"></div>
-              <p className="text-gray-500 mt-2">Loading users...</p>
+              <p className="text-gray-500 mt-2">
+                {language.t("admin.users.loading")}
+              </p>
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">
-                All users have been assigned to hospitals!
+                {language.t("admin.users.allAssigned")}
               </p>
             </div>
           ) : (
@@ -403,7 +467,11 @@ export default function AdminDashboard() {
                           disabled={assigning === user.id}
                         >
                           <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Select hospital" />
+                            <SelectValue
+                              placeholder={language.t(
+                                "admin.users.table.assignHospital"
+                              )}
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {hospitals.map((hospital) => (
@@ -594,7 +662,8 @@ export default function AdminDashboard() {
             All Hospital Submissions - Forms Data
           </CardTitle>
           <p className="text-sm text-gray-600">
-            View all form submissions from every hospital. Click "View Report" to see detailed metrics.
+            View all form submissions from every hospital. Click "View Report"
+            to see detailed metrics.
           </p>
         </CardHeader>
         <CardContent>
@@ -618,9 +687,11 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  Total Forms: {formsData.length} | 
-                  Submitted: {formsData.filter(f => f.submitted).length} | 
-                  Pending: {formsData.filter(f => !f.submitted).length}
+                  {language.t("admin.forms.totals")}: {formsData.length} |{" "}
+                  {language.t("admin.forms.submitted")}:{" "}
+                  {formsData.filter((f) => f.submitted).length} |{" "}
+                  {language.t("admin.forms.pending")}:{" "}
+                  {formsData.filter((f) => !f.submitted).length}
                 </div>
                 <Button
                   variant="outline"
@@ -629,20 +700,34 @@ export default function AdminDashboard() {
                   className="flex items-center gap-2"
                 >
                   <Activity className="h-4 w-4" />
-                  Refresh
+                  {language.t("admin.forms.refresh")}
                 </Button>
               </div>
-              
+
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Hospital</TableHead>
-                    <TableHead>Department Head</TableHead>
-                    <TableHead>Month/Year</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Submitted At</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.hospital")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.deptHead")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.monthYear")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.status")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.submittedAt")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.created")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("admin.forms.table.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -654,44 +739,64 @@ export default function AdminDashboard() {
                       <TableCell>
                         {form.department_head ? (
                           <div>
-                            <div className="font-medium">{form.department_head.name}</div>
-                            <div className="text-sm text-gray-500">{form.department_head.email}</div>
+                            <div className="font-medium">
+                              {form.department_head.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {form.department_head.email}
+                            </div>
                           </div>
                         ) : (
-                          <span className="text-gray-500">Not assigned</span>
+                          <span className="text-gray-500">
+                            {language.t("admin.common.notAssigned")}
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(form.year, form.month - 1).toLocaleDateString('en-US', {
-                          month: 'long',
-                          year: 'numeric'
-                        })}
+                        {new Date(form.year, form.month - 1).toLocaleDateString(
+                          language.language === "pt" ? "pt-PT" : "en-US",
+                          {
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           {getSubmissionStatusIcon(form.submitted)}
-                          {getSubmissionStatusBadge(form.submitted, form.submitted_at || undefined)}
+                          {getSubmissionStatusBadge(
+                            form.submitted,
+                            form.submitted_at || undefined
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
                         {form.submitted_at ? (
-                          new Date(form.submitted_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
+                          new Date(form.submitted_at).toLocaleDateString(
+                            language.language === "pt" ? "pt-PT" : "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )
                         ) : (
-                          <span className="text-gray-500">Not submitted</span>
+                          <span className="text-gray-500">
+                            {language.t("common.notSubmitted")}
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(form.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
+                        {new Date(form.created_at).toLocaleDateString(
+                          language.language === "pt" ? "pt-PT" : "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
@@ -700,30 +805,43 @@ export default function AdminDashboard() {
                             size="sm"
                             onClick={() => {
                               // Navigate to a detailed report view
-                              window.open(`/admin/report/${form.hospital_id}/${form.year}-${String(form.month).padStart(2, '0')}`, '_blank');
+                              router.push(
+                                `/admin/report/${form.hospital_id}/${
+                                  form.year
+                                }-${String(form.month).padStart(2, "0")}`
+                              );
                             }}
                             className="flex items-center space-x-1"
                           >
                             <Activity className="h-3 w-3" />
-                            <span>View Report</span>
+                            <span>{language.t("admin.forms.viewReport")}</span>
                           </Button>
                           {form.department_head?.email && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleSendReminder(form.department_head!.email)}
-                              disabled={sendingReminder === form.department_head!.email}
+                              onClick={() =>
+                                handleSendReminder(form.department_head!.email)
+                              }
+                              disabled={
+                                sendingReminder === form.department_head!.email
+                              }
                               className="flex items-center space-x-1"
                             >
-                              {sendingReminder === form.department_head!.email ? (
+                              {sendingReminder ===
+                              form.department_head!.email ? (
                                 <>
                                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                                  <span>Sending...</span>
+                                  <span>
+                                    {language.t("admin.dashboard.sending")}
+                                  </span>
                                 </>
                               ) : (
                                 <>
                                   <Mail className="h-3 w-3" />
-                                  <span>Send Reminder</span>
+                                  <span>
+                                    {language.t("admin.dashboard.sendReminder")}
+                                  </span>
                                 </>
                               )}
                             </Button>
@@ -738,39 +856,6 @@ export default function AdminDashboard() {
           )}
         </CardContent>
       </Card>
-
-      {/* All Hospitals Trends */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Hospitals Trends</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">Multi-line chart placeholder</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sparkline Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {Array.from({ length: 8 }, (_, i) => (
-          <Card key={i}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <Badge variant={i % 2 === 0 ? "default" : "secondary"}>
-                  Hospital {i + 1}
-                </Badge>
-                <span className="text-xs text-gray-500">
-                  +{Math.floor(Math.random() * 20)}%
-                </span>
-              </div>
-              <div className="h-16 bg-gray-100 rounded flex items-center justify-center">
-                <p className="text-xs text-gray-500">Sparkline</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 }

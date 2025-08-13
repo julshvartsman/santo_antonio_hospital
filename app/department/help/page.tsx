@@ -19,10 +19,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useApp } from "@/components/providers/AppProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function DepartmentHelp() {
   const { user } = useAuth();
+  const { language } = useApp();
   const [formData, setFormData] = useState({
     firstName: user?.name?.split(" ")[0] || "",
     lastName: user?.name?.split(" ").slice(1).join(" ") || "",
@@ -35,6 +37,20 @@ export default function DepartmentHelp() {
     "idle" | "success" | "error"
   >("idle");
   const [submitMessage, setSubmitMessage] = useState("");
+
+  const openWhatsAppToAdmin = () => {
+    // Prefer env var, fallback to contact info number
+    const adminPhone = (
+      process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || "+351 912 135 981"
+    ).trim();
+    const digits = adminPhone.replace(/\D/g, "");
+    if (!digits) return;
+    const text = `Hello, I need assistance with the Hospital Sustainability Dashboard.`;
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+    if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -98,10 +114,10 @@ export default function DepartmentHelp() {
     <div className="space-y-6">
       {/* Page Title */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Help & Support</h1>
-        <p className="text-gray-600 mt-2">
-          Get help with using the sustainability dashboard
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          {language.t("dept.help.title")}
+        </h1>
+        <p className="text-gray-600 mt-2">{language.t("dept.help.subtitle")}</p>
       </div>
 
       {/* Contact Information */}
@@ -111,7 +127,7 @@ export default function DepartmentHelp() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5" />
-              <span>Send Message</span>
+              <span>{language.t("dept.help.sendMessage")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -145,7 +161,7 @@ export default function DepartmentHelp() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="firstName" className="text-sm font-medium">
-                    First Name
+                    {language.t("dept.help.firstName")}
                   </label>
                   <input
                     id="firstName"
@@ -159,7 +175,7 @@ export default function DepartmentHelp() {
                 </div>
                 <div>
                   <label htmlFor="lastName" className="text-sm font-medium">
-                    Last Name
+                    {language.t("dept.help.lastName")}
                   </label>
                   <input
                     id="lastName"
@@ -175,7 +191,7 @@ export default function DepartmentHelp() {
 
               <div>
                 <label htmlFor="email" className="text-sm font-medium">
-                  Email
+                  {language.t("dept.help.email")}
                 </label>
                 <input
                   id="email"
@@ -191,7 +207,7 @@ export default function DepartmentHelp() {
 
               <div>
                 <label htmlFor="phone" className="text-sm font-medium">
-                  Phone Number
+                  {language.t("dept.help.phoneNumber")}
                 </label>
                 <input
                   id="phone"
@@ -205,7 +221,7 @@ export default function DepartmentHelp() {
 
               <div>
                 <label htmlFor="message" className="text-sm font-medium">
-                  Message
+                  {language.t("dept.help.message")}
                 </label>
                 <textarea
                   id="message"
@@ -228,12 +244,12 @@ export default function DepartmentHelp() {
                   {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Sending...
+                      {language.t("dept.help.sending")}
                     </>
                   ) : (
                     <>
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      Send Message
+                      {language.t("dept.help.send")}
                     </>
                   )}
                 </Button>
@@ -247,7 +263,7 @@ export default function DepartmentHelp() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Phone className="h-5 w-5" />
-              <span>Contact Information</span>
+              <span>{language.t("dept.help.contactInfo")}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -255,7 +271,9 @@ export default function DepartmentHelp() {
               <div className="flex items-start space-x-3">
                 <Phone className="h-5 w-5 text-[#225384] mt-1" />
                 <div>
-                  <h4 className="font-medium">Phone</h4>
+                  <h4 className="font-medium">
+                    {language.t("dept.help.phone")}
+                  </h4>
                   <p className="text-sm text-gray-600">+351 912 135 981</p>
                 </div>
               </div>
@@ -263,7 +281,9 @@ export default function DepartmentHelp() {
               <div className="flex items-start space-x-3">
                 <Mail className="h-5 w-5 text-[#225384] mt-1" />
                 <div>
-                  <h4 className="font-medium">Email</h4>
+                  <h4 className="font-medium">
+                    {language.t("dept.help.email")}
+                  </h4>
                   <p className="text-sm text-gray-600">
                     goncalo.silva@chporto.min-saude.pt
                   </p>
@@ -293,7 +313,9 @@ export default function DepartmentHelp() {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-medium">Address</h4>
+                  <h4 className="font-medium">
+                    {language.t("dept.help.address")}
+                  </h4>
                   <p className="text-sm text-gray-600">
                     Largo Professor Abel Salazar
                     <br />
@@ -305,29 +327,26 @@ export default function DepartmentHelp() {
           </CardContent>
         </Card>
 
-        {/* Direct Support Section */}
-        <Card className="lg:col-span-2">
+        {/* Direct Support Section (compact) */}
+        <Card>
           <CardHeader>
             <CardTitle className="text-[#225384]">
-              Contact for direct support
+              {language.t("dept.help.directSupport")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
+                size="sm"
                 className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                onClick={openWhatsAppToAdmin}
               >
-                Chat on WhatsApp
+                {language.t("dept.help.chatWhatsApp")}
               </Button>
-              <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 bg-white border-2 border-gray-300 rounded flex items-center justify-center">
-                    <span className="text-xs text-gray-500">QR Code</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">WhatsApp</p>
-                </div>
-              </div>
+              <span className="text-sm text-gray-600">
+                {language.t("dept.help.chatWhatsAppDesc")}
+              </span>
             </div>
           </CardContent>
         </Card>

@@ -20,7 +20,6 @@ import { Loader2 } from "lucide-react";
 const entrySchema = z.object({
   kwh_usage: z.number().min(0, "Must be a positive number"),
   water_usage_m3: z.number().min(0, "Must be a positive number"),
-  co2_emissions: z.number().min(0, "Must be a positive number"),
 });
 
 type FormData = z.infer<typeof entrySchema>;
@@ -36,7 +35,6 @@ export function EntryForm({
     defaultValues: {
       kwh_usage: initialData?.kwh_usage || 0,
       water_usage_m3: initialData?.water_usage_m3 || 0,
-      co2_emissions: initialData?.co2_emissions || 0,
     },
   });
 
@@ -53,6 +51,10 @@ export function EntryForm({
     <Card>
       <CardHeader>
         <CardTitle>Monthly Sustainability Data Entry</CardTitle>
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+          <strong>Note:</strong> CO₂ emissions are automatically calculated from
+          your inputs using industry-standard emission factors.
+        </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -88,28 +90,6 @@ export function EntryForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Water Usage (m³)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value))
-                      }
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="co2_emissions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CO2 Emissions (metric tons)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"

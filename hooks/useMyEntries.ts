@@ -110,10 +110,10 @@ export function useMyEntries() {
     try {
       const currentMonth = data.current_month_key;
 
-      // Calculate CO2 emissions if not provided (simple formula)
+      // Calculate CO2 emissions using standard emission factors
       const co2_emissions =
         formData.co2_emissions ||
-        formData.kwh_usage * 0.5 + formData.water_usage_m3 * 0.1;
+        formData.kwh_usage * 0.92 + formData.water_usage_m3 * 0.344;
 
       const entryData = {
         hospital_id: user.hospital_id!,
@@ -177,15 +177,15 @@ export function useMyEntries() {
     try {
       const currentMonth = data.current_month_key;
 
-      // Calculate CO2 emissions if not provided - includes electricity, water, and all waste types
+      // Calculate CO2 emissions using standard emission factors
       const co2_emissions =
         formData.co2_emissions ||
-        formData.kwh_usage * 0.5 +
-          formData.water_usage_m3 * 0.1 +
-          formData.type1 * 0.8 +
-          formData.type2 * 0.7 +
-          formData.type3 * 0.6 +
-          formData.type4 * 0.5;
+        formData.kwh_usage * 0.92 +
+          formData.water_usage_m3 * 0.344 +
+          formData.type1 * 2.53 +
+          formData.type2 * 0.71 +
+          formData.type3 * 3.2 +
+          formData.type4 * 4.1;
 
       const entryData = {
         hospital_id: user.hospital_id!,
