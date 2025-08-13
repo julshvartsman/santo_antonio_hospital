@@ -5,7 +5,7 @@ export interface User {
   name: string;
   role: "admin" | "user" | "department_head" | "super_admin";
   avatar?: string;
-  hospital_id?: string;
+  hospital_id?: string | null;
 }
 
 export interface LoginCredentials {
