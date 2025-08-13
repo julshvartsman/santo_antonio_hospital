@@ -213,10 +213,10 @@ class AuthService {
       }
 
       // Check cache first for faster response
-      const cachedUser = getFromStorage("user");
+      const cachedUser = getFromStorage<User | null>("user", null);
       if (cachedUser && cachedUser.id === session.user.id) {
         // Verify cache is still valid (not older than 5 minutes)
-        const cacheTime = getFromStorage("user_cache_time");
+        const cacheTime = getFromStorage<number | null>("user_cache_time", null);
         if (cacheTime && Date.now() - cacheTime < 5 * 60 * 1000) {
           return cachedUser;
         }
@@ -326,8 +326,8 @@ export function useAuth(): UseAuthReturn {
       console.log("Initializing auth...");
       try {
         // Check for cached user first to show immediate feedback
-        const cachedUser = getFromStorage("user");
-        const cacheTime = getFromStorage("user_cache_time");
+        const cachedUser = getFromStorage<User | null>("user", null);
+        const cacheTime = getFromStorage<number | null>("user_cache_time", null);
 
         if (
           cachedUser &&
