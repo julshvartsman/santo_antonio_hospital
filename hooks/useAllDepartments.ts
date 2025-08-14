@@ -177,6 +177,11 @@ export function useAllDepartments() {
       const hospitalsData = hospitalsResponse.data;
       const entriesData = entriesResponse.data;
 
+      // Debug: Log the entries data to see what's being fetched
+      console.log("🔍 Debug - Entries data fetched:", entriesData);
+      console.log("🔍 Debug - Current month:", currentMonth);
+      console.log("🔍 Debug - Previous month:", previousMonth);
+
       // Process data for each hospital
       const processedHospitals: HospitalWithMetrics[] = hospitalsData.map(
         (hospital) => {
@@ -304,6 +309,9 @@ export function useAllDepartments() {
             allCo2Values
           );
       });
+
+      // Debug: Log processed hospitals data
+      console.log("🔍 Debug - Processed hospitals:", processedHospitals);
 
       // Calculate cumulative metrics
       const cumulative: CumulativeMetrics = {
