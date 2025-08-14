@@ -81,8 +81,11 @@ export interface ChatMessage {
 export interface FAQItem {
   id: string;
   question: string;
+  question_pt?: string;
   answer: string;
+  answer_pt?: string;
   category: string;
+  category_pt?: string;
 }
 
 // Form types
