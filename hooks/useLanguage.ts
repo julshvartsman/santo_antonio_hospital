@@ -93,18 +93,17 @@ const translations = {
     "dept.dataEntry.status.draft": "Draft",
     "dept.dataEntry.button.view": "View",
     "dept.dataEntry.button.edit": "Edit",
-    "dept.reports.energyTrendTitle": "12-Month Energy Trend",
-    "dept.reports.energyTrendDesc":
-      "Your hospital's energy usage over the past year",
     "dept.reports.monthlyReport": "Monthly Report",
     "dept.reports.status": "Status",
     "dept.reports.period": "Period",
     "dept.reports.submitted": "Submitted",
     // Department - Reports & Analytics
     "dept.reports.energyTrendTitle": "12-Month Energy Trend",
-    "dept.reports.energyTrendDesc": "Your hospital's energy usage over the past year",
+    "dept.reports.energyTrendDesc":
+      "Your hospital's energy usage over the past year",
     "dept.reports.co2TrendTitle": "12-Month CO₂ Emissions Trend",
-    "dept.reports.co2TrendDesc": "Your hospital's CO₂ emissions over the past year",
+    "dept.reports.co2TrendDesc":
+      "Your hospital's CO₂ emissions over the past year",
     "dept.reports.trendAnalysis": "Trend Analysis",
     "dept.reports.energyTrend": "Energy Trend",
     "dept.reports.waterTrend": "Water Trend",
@@ -317,18 +316,17 @@ const translations = {
     "dept.dataEntry.status.draft": "Rascunho",
     "dept.dataEntry.button.view": "Ver",
     "dept.dataEntry.button.edit": "Editar",
-    "dept.reports.energyTrendTitle": "Tendência de Energia (12 meses)",
-    "dept.reports.energyTrendDesc":
-      "Consumo de energia do seu hospital no último ano",
     "dept.reports.monthlyReport": "Relatório Mensal",
     "dept.reports.status": "Estado",
     "dept.reports.period": "Período",
     "dept.reports.submitted": "Submetido",
     // Department - Reports & Analytics
     "dept.reports.energyTrendTitle": "Tendência de Energia (12 meses)",
-    "dept.reports.energyTrendDesc": "Consumo de energia do seu hospital no último ano",
+    "dept.reports.energyTrendDesc":
+      "Consumo de energia do seu hospital no último ano",
     "dept.reports.co2TrendTitle": "Tendência de Emissões CO₂ (12 meses)",
-    "dept.reports.co2TrendDesc": "Emissões de CO₂ do seu hospital no último ano",
+    "dept.reports.co2TrendDesc":
+      "Emissões de CO₂ do seu hospital no último ano",
     "dept.reports.trendAnalysis": "Análise de Tendências",
     "dept.reports.energyTrend": "Tendência de Energia",
     "dept.reports.waterTrend": "Tendência de Água",
@@ -466,7 +464,8 @@ const translations = {
     "admin.forms.viewReport": "Ver Relatório",
     // FAQ
     "faq.title": "FAQ",
-    "faq.subtitle": "Encontre respostas para perguntas comuns sobre o sistema de dados de sustentabilidade.",
+    "faq.subtitle":
+      "Encontre respostas para perguntas comuns sobre o sistema de dados de sustentabilidade.",
     "faq.searchPlaceholder": "Buscar FAQ...",
     "faq.categories.dataEntry": "Entrada de Dados",
     "faq.categories.deadlines": "Prazos",
