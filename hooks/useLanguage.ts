@@ -5,6 +5,7 @@ type Language = "en" | "pt";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   t: (key: string) => string;
 }
 
@@ -22,7 +23,8 @@ const translations = {
     "login.forgotPassword": "Forgot password?",
     "login.signUpHere": "Sign up here",
     "login.dashboardTitle": "Hospital Sustainability Dashboard",
-    "login.dashboardDesc": "Manage and monitor sustainability metrics across all hospital departments",
+    "login.dashboardDesc":
+      "Manage and monitor sustainability metrics across all hospital departments",
     "login.enterCredentials": "Enter your email and password to sign in!",
     "signup.title": "Create Account",
     "signup.name": "Full Name",
@@ -260,8 +262,10 @@ const translations = {
     "login.forgotPassword": "Esqueceu a senha?",
     "login.signUpHere": "Registar aqui",
     "login.dashboardTitle": "Painel de Sustentabilidade Hospitalar",
-    "login.dashboardDesc": "Gerir e monitorizar métricas de sustentabilidade em todos os departamentos hospitalares",
-    "login.enterCredentials": "Introduza o seu email e palavra-passe para entrar!",
+    "login.dashboardDesc":
+      "Gerir e monitorizar métricas de sustentabilidade em todos os departamentos hospitalares",
+    "login.enterCredentials":
+      "Introduza o seu email e palavra-passe para entrar!",
     "signup.title": "Criar Conta",
     "signup.name": "Nome Completo",
     "signup.confirmPassword": "Confirmar Senha",
@@ -531,9 +535,14 @@ export function useLanguage(): LanguageContextType {
     );
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "pt" : "en");
+  };
+
   return {
     language,
     setLanguage,
+    toggleLanguage,
     t,
   };
 }

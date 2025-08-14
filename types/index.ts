@@ -159,5 +159,6 @@ export interface UseAuthReturn {
 export interface UseLanguageReturn {
   language: Language;
   setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   t: (key: string) => string;
 }
