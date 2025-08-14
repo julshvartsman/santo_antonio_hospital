@@ -3,7 +3,7 @@ export interface Form {
   hospital_id: string;
   month: number;
   year: number;
-  data: Record<string, number>; // map of metricKey → numeric value
+  data: Record<string, number | string>; // map of metricKey → value
   submitted: boolean;
   submitted_at?: string | null;
   created_at?: string;
@@ -23,11 +23,12 @@ export interface FormMetric {
   key: string;
   label: string;
   unit: string;
-  type: "number" | "percentage" | "currency";
+  type: "number" | "percentage" | "currency" | "text" | "select";
   required?: boolean;
   min?: number;
   max?: number;
   description?: string;
+  options?: { value: string; label: string }[]; // for select
 }
 
 export interface DynamicFormProps {

@@ -170,6 +170,10 @@ export function useMyEntries() {
     type3: number;
     type4: number;
     co2_emissions?: number;
+    fuel_type?: string;
+    kilometers_travelled?: number;
+    license_plate?: string;
+    renewable_energy_created?: number;
   }) => {
     if (!user || !data)
       return { error: "User not authenticated or data not loaded" };
@@ -198,6 +202,10 @@ export function useMyEntries() {
         type3: formData.type3,
         type4: formData.type4,
         co2_emissions,
+        fuel_type: formData.fuel_type || null,
+        kilometers_travelled: formData.kilometers_travelled || 0,
+        license_plate: formData.license_plate || null,
+        renewable_energy_created: formData.renewable_energy_created || 0,
         submitted: true,
         submitted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

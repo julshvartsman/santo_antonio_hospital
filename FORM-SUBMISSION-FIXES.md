@@ -60,6 +60,10 @@ CREATE TABLE entries (
   type3 DECIMAL(10,2) NOT NULL DEFAULT 0,
   type4 DECIMAL(10,2) NOT NULL DEFAULT 0,
   co2_emissions DECIMAL(10,2) NOT NULL DEFAULT 0,
+  fuel_type TEXT, -- 'gas' or 'diesel'
+  kilometers_travelled DECIMAL(10,2) DEFAULT 0,
+  license_plate TEXT,
+  renewable_energy_created DECIMAL(10,2) DEFAULT 0,
   submitted BOOLEAN DEFAULT FALSE,
   submitted_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
