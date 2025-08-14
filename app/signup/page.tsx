@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useApp } from "@/components/providers/AppProvider";
 import Logo from "@/components/ui/Logo";
 import { supabase } from "@/lib/supabaseClient";
 import { useHospitals } from "@/hooks/useHospitals";
@@ -51,6 +52,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const { language } = useApp();
   const {
     hospitals,
     loading: hospitalsLoading,
@@ -185,7 +187,7 @@ export default function SignupPage() {
         }
 
         setSuccess(
-          "Account created successfully! Please check your email to verify your account."
+          `${language.t("signup.accountCreated")} Please check your email to verify your account.`
         );
 
         // Redirect to login after a short delay
@@ -209,11 +211,10 @@ export default function SignupPage() {
         <div className="max-w-md">
           <Logo size="xl" className="mb-8" />
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Hospital Sustainability Dashboard
+            {language.t("login.dashboardTitle")}
           </h2>
           <p className="text-lg text-gray-600">
-            Join our platform to manage and monitor sustainability metrics
-            across all hospital departments
+            {language.t("login.dashboardDesc")}
           </p>
         </div>
       </div>
@@ -227,13 +228,13 @@ export default function SignupPage() {
               className="inline-flex items-center text-sm text-[#225384] hover:text-[#1a4a6b] mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Sign In
+              {language.t("signup.backToLogin")}
             </Link>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Create Account
+              {language.t("signup.title")}
             </h2>
             <p className="text-gray-600">
-              Sign up to access the hospital sustainability dashboard
+              {language.t("login.dashboardDesc")}
             </p>
           </div>
 
@@ -269,10 +270,10 @@ export default function SignupPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>{language.t("signup.name")}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter your full name"
+                          placeholder={language.t("signup.name")}
                           {...field}
                           className="h-12 border-2 border-gray-200 rounded-lg"
                         />
@@ -287,11 +288,11 @@ export default function SignupPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{language.t("login.email")}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="Enter your email"
+                          placeholder={language.t("login.email")}
                           {...field}
                           className="h-12 border-2 border-gray-200 rounded-lg"
                         />
@@ -306,21 +307,21 @@ export default function SignupPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Role</FormLabel>
+                      <FormLabel>{language.t("signup.role")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className="h-12 border-2 border-gray-200 rounded-lg">
-                            <SelectValue placeholder="Select your role" />
+                            <SelectValue placeholder={language.t("signup.selectRole")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="department_head">
-                            Department Head
+                            {language.t("signup.departmentHead")}
                           </SelectItem>
-                          <SelectItem value="admin">Administrator</SelectItem>
+                          <SelectItem value="admin">{language.t("signup.admin")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -333,7 +334,7 @@ export default function SignupPage() {
                   name="hospital"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Hospital</FormLabel>
+                      <FormLabel>{language.t("signup.hospital")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -349,8 +350,8 @@ export default function SignupPage() {
                             <SelectValue
                               placeholder={
                                 hospitalsLoading
-                                  ? "Loading hospitals..."
-                                  : "Select a hospital"
+                                  ? language.t("common.loading")
+                                  : language.t("signup.selectHospital")
                               }
                             />
                           </SelectTrigger>
@@ -358,7 +359,7 @@ export default function SignupPage() {
                         <SelectContent>
                           {hospitalsLoading ? (
                             <SelectItem value="loading" disabled>
-                              Loading hospitals...
+                              {language.t("common.loading")}
                             </SelectItem>
                           ) : hospitals.length > 0 ? (
                             hospitals.map((hospital) => (
@@ -371,7 +372,7 @@ export default function SignupPage() {
                             ))
                           ) : (
                             <SelectItem value="no-hospitals" disabled>
-                              No hospitals available
+                              {language.t("common.noHospitals")}
                             </SelectItem>
                           )}
                         </SelectContent>
@@ -388,12 +389,12 @@ export default function SignupPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{language.t("login.password")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder="Enter password"
+                            placeholder={language.t("login.password")}
                             {...field}
                             className="h-12 pl-4 pr-12 border-2 border-gray-200 rounded-lg"
                           />
@@ -422,12 +423,12 @@ export default function SignupPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
+                      <FormLabel>{language.t("signup.confirmPassword")}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm password"
+                            placeholder={language.t("signup.confirmPassword")}
                             {...field}
                             className="h-12 pl-4 pr-12 border-2 border-gray-200 rounded-lg"
                           />
@@ -461,21 +462,21 @@ export default function SignupPage() {
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Creating account...
+                      {language.t("signup.creating")}
                     </div>
                   ) : (
-                    <span>Create Account</span>
+                    <span>{language.t("signup.create")}</span>
                   )}
                 </Button>
 
                 <div className="text-center">
                   <div className="text-sm text-gray-600">
-                    Already have an account?{" "}
+                    {language.t("signup.login")}{" "}
                     <Link
                       href="/login"
                       className="text-[#225384] font-medium hover:text-[#1a4a6b] transition-colors"
                     >
-                      Sign in here
+                      {language.t("login.signin")}
                     </Link>
                   </div>
                 </div>

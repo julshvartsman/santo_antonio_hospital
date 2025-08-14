@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
+import { useApp } from "@/components/providers/AppProvider";
 import Logo from "@/components/ui/Logo";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -36,6 +37,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading } = useAuth();
+  const { language } = useApp();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,11 +88,10 @@ export default function LoginPage() {
         <div className="max-w-md text-center">
           <Logo size="2xl" className="mb-8" />
           <h2 className="text-xl font-bold text-gray-900 mb-3">
-            Hospital Sustainability Dashboard
+            {language.t("login.dashboardTitle")}
           </h2>
           <p className="text-sm text-gray-600">
-            Manage and monitor sustainability metrics across all hospital
-            departments
+            {language.t("login.dashboardDesc")}
           </p>
         </div>
       </div>
@@ -99,9 +100,9 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">{language.t("login.title")}</h2>
             <p className="text-gray-600">
-              Enter your email and password to sign in!
+              {language.t("login.enterCredentials")}
             </p>
           </div>
 
@@ -136,7 +137,7 @@ export default function LoginPage() {
                           </div>
                           <Input
                             type="email"
-                            placeholder="EMAIL"
+                            placeholder={language.t("login.email").toUpperCase()}
                             {...field}
                             className="h-14 pl-12 border-2 border-gray-200 rounded-lg text-sm font-medium placeholder:text-gray-400"
                           />
@@ -166,7 +167,7 @@ export default function LoginPage() {
                           </div>
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder="PASSWORD"
+                            placeholder={language.t("login.password").toUpperCase()}
                             {...field}
                             className="h-14 pl-12 pr-12 border-2 border-gray-200 rounded-lg text-sm font-medium placeholder:text-gray-400"
                           />
@@ -198,10 +199,10 @@ export default function LoginPage() {
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Signing in...
+                      {language.t("login.signingIn")}
                     </div>
                   ) : (
-                    <span>Sign In</span>
+                    <span>{language.t("login.signin")}</span>
                   )}
                 </Button>
 
@@ -211,17 +212,17 @@ export default function LoginPage() {
                       href="/forgot-password"
                       className="text-[#225384] text-sm font-medium hover:text-[#1a4a6b] transition-colors"
                     >
-                      Forgot password?
+                      {language.t("login.forgotPassword")}
                     </Link>
                   </div>
 
                   <div className="text-sm text-gray-600">
-                    Don't have an account?{" "}
+                    {language.t("login.signup")}{" "}
                     <Link
                       href="/signup"
                       className="text-[#225384] font-medium hover:text-[#1a4a6b] transition-colors"
                     >
-                      Sign up here
+                      {language.t("login.signUpHere")}
                     </Link>
                   </div>
                 </div>
