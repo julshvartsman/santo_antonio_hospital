@@ -497,11 +497,11 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Cumulative Metrics - All 7 Required Metrics */}
+      {/* Cumulative Metrics - Core Sustainability Indicators */}
       <Card>
         <CardHeader>
           <CardTitle>
-            Cumulative Metrics - 7 Key Sustainability Indicators
+            Cumulative Metrics - Key Sustainability Indicators
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -649,6 +649,90 @@ export default function AdminDashboard() {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500">Loading metrics data...</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Cumulative Metrics - Additional Vehicle & Renewable Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Cumulative Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {cumulativeMetrics ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Kilometers Travelled */}
+              <div className="bg-emerald-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-emerald-600">Kilometers Travelled</p>
+                    <p className="text-2xl font-bold text-emerald-900">
+                      {Math.round(
+                        cumulativeMetrics.total_kilometers_travelled || 0
+                      ).toLocaleString()} km
+                    </p>
+                    <p className="text-xs text-emerald-600/70">
+                      {cumulativeMetrics.overall_changes.kilometers > 0 ? "+" : ""}
+                      {cumulativeMetrics.overall_changes.kilometers.toFixed(1)}% vs last month
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-emerald-600" />
+                </div>
+              </div>
+
+              {/* Renewable Energy Created */}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600">Renewable Energy Created</p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {Math.round(
+                        cumulativeMetrics.total_renewable_energy_created || 0
+                      ).toLocaleString()} kWh
+                    </p>
+                    <p className="text-xs text-green-600/70">
+                      {cumulativeMetrics.overall_changes.renewable_energy > 0 ? "+" : ""}
+                      {cumulativeMetrics.overall_changes.renewable_energy.toFixed(1)}% vs last month
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+
+              {/* Fuel Type Mix */}
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600">Fuel Type Mix</p>
+                    <p className="text-2xl font-bold text-slate-900">
+                      Gas: {cumulativeMetrics.total_gas_count} / Diesel: {cumulativeMetrics.total_diesel_count}
+                    </p>
+                    <p className="text-xs text-slate-600/70">
+                      Vehicle entries categorized by fuel type this month
+                    </p>
+                  </div>
+                  <Activity className="h-8 w-8 text-slate-600" />
+                </div>
+              </div>
+
+              {/* License Plates Recorded */}
+              <div className="bg-zinc-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-zinc-600">License Plates Recorded</p>
+                    <p className="text-2xl font-bold text-zinc-900">
+                      {cumulativeMetrics.total_license_plate_count}
+                    </p>
+                    <p className="text-xs text-zinc-600/70">Total entries with plate numbers this month</p>
+                  </div>
+                  <Activity className="h-8 w-8 text-zinc-600" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading additional metrics...</p>
             </div>
           )}
         </CardContent>

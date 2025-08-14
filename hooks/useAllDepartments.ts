@@ -13,6 +13,10 @@ export interface HospitalWithMetrics extends Hospital {
     waste_type3: number;
     waste_type4: number;
     co2_emissions: number;
+    kilometers_travelled?: number;
+    renewable_energy_created?: number;
+    fuel_type?: string | null;
+    license_plate_count?: number; // 1 if present, else 0
   };
   previous_month_totals: {
     kwh_usage: number;
@@ -22,6 +26,10 @@ export interface HospitalWithMetrics extends Hospital {
     waste_type3: number;
     waste_type4: number;
     co2_emissions: number;
+    kilometers_travelled?: number;
+    renewable_energy_created?: number;
+    fuel_type?: string | null;
+    license_plate_count?: number;
   };
   percentage_changes: {
     kwh: number;
@@ -31,6 +39,8 @@ export interface HospitalWithMetrics extends Hospital {
     waste_type3: number;
     waste_type4: number;
     co2: number;
+    kilometers?: number;
+    renewable_energy?: number;
   };
   isOutlier: boolean;
   submission_status: {
@@ -47,6 +57,11 @@ export interface CumulativeMetrics {
   total_waste_type3: number;
   total_waste_type4: number;
   total_co2: number;
+  total_kilometers_travelled: number;
+  total_renewable_energy_created: number;
+  total_gas_count: number;
+  total_diesel_count: number;
+  total_license_plate_count: number;
   previous_total_kwh: number;
   previous_total_water_m3: number;
   previous_total_waste_type1: number;
@@ -54,6 +69,11 @@ export interface CumulativeMetrics {
   previous_total_waste_type3: number;
   previous_total_waste_type4: number;
   previous_total_co2: number;
+  previous_total_kilometers_travelled: number;
+  previous_total_renewable_energy_created: number;
+  previous_total_gas_count: number;
+  previous_total_diesel_count: number;
+  previous_total_license_plate_count: number;
   overall_changes: {
     kwh: number;
     water: number;
@@ -62,6 +82,8 @@ export interface CumulativeMetrics {
     waste_type3: number;
     waste_type4: number;
     co2: number;
+    kilometers: number;
+    renewable_energy: number;
   };
 }
 
@@ -180,6 +202,11 @@ export function useAllDepartments() {
             waste_type3: currentEntry?.waste_type3 || 0,
             waste_type4: currentEntry?.waste_type4 || 0,
             co2_emissions: currentEntry?.co2_emissions || 0,
+            kilometers_travelled: currentEntry?.kilometers_travelled || 0,
+            renewable_energy_created:
+              currentEntry?.renewable_energy_created || 0,
+            fuel_type: currentEntry?.fuel_type || null,
+            license_plate_count: currentEntry?.license_plate ? 1 : 0,
           };
 
           const previous_month_totals = {
@@ -190,6 +217,11 @@ export function useAllDepartments() {
             waste_type3: previousEntry?.waste_type3 || 0,
             waste_type4: previousEntry?.waste_type4 || 0,
             co2_emissions: previousEntry?.co2_emissions || 0,
+            kilometers_travelled: previousEntry?.kilometers_travelled || 0,
+            renewable_energy_created:
+              previousEntry?.renewable_energy_created || 0,
+            fuel_type: previousEntry?.fuel_type || null,
+            license_plate_count: previousEntry?.license_plate ? 1 : 0,
           };
 
           const percentage_changes = {
@@ -212,6 +244,20 @@ export function useAllDepartments() {
                 ? ((current_month_totals.co2_emissions -
                     previous_month_totals.co2_emissions) /
                     previous_month_totals.co2_emissions) *
+                  100
+                : 0,
+            kilometers:
+              (previous_month_totals.kilometers_travelled || 0) > 0
+                ? (((current_month_totals.kilometers_travelled || 0) -
+                    (previous_month_totals.kilometers_travelled || 0)) /
+                    (previous_month_totals.kilometers_travelled || 1)) *
+                  100
+                : 0,
+            renewable_energy:
+              (previous_month_totals.renewable_energy_created || 0) > 0
+                ? (((current_month_totals.renewable_energy_created || 0) -
+                    (previous_month_totals.renewable_energy_created || 0)) /
+                    (previous_month_totals.renewable_energy_created || 1)) *
                   100
                 : 0,
           };
@@ -289,6 +335,28 @@ export function useAllDepartments() {
           (sum, h) => sum + h.current_month_totals.co2_emissions,
           0
         ),
+        total_kilometers_travelled: processedHospitals.reduce(
+          (sum, h) => sum + (h.current_month_totals.kilometers_travelled || 0),
+          0
+        ),
+        total_renewable_energy_created: processedHospitals.reduce(
+          (sum, h) =>
+            sum + (h.current_month_totals.renewable_energy_created || 0),
+          0
+        ),
+        total_gas_count: processedHospitals.reduce(
+          (sum, h) => sum + (h.current_month_totals.fuel_type === "gas" ? 1 : 0),
+          0
+        ),
+        total_diesel_count: processedHospitals.reduce(
+          (sum, h) =>
+            sum + (h.current_month_totals.fuel_type === "diesel" ? 1 : 0),
+          0
+        ),
+        total_license_plate_count: processedHospitals.reduce(
+          (sum, h) => sum + (h.current_month_totals.license_plate_count || 0),
+          0
+        ),
         previous_total_kwh: processedHospitals.reduce(
           (sum, h) => sum + h.previous_month_totals.kwh_usage,
           0
@@ -317,6 +385,28 @@ export function useAllDepartments() {
           (sum, h) => sum + h.previous_month_totals.co2_emissions,
           0
         ),
+        previous_total_kilometers_travelled: processedHospitals.reduce(
+          (sum, h) => sum + (h.previous_month_totals.kilometers_travelled || 0),
+          0
+        ),
+        previous_total_renewable_energy_created: processedHospitals.reduce(
+          (sum, h) =>
+            sum + (h.previous_month_totals.renewable_energy_created || 0),
+          0
+        ),
+        previous_total_gas_count: processedHospitals.reduce(
+          (sum, h) => sum + (h.previous_month_totals.fuel_type === "gas" ? 1 : 0),
+          0
+        ),
+        previous_total_diesel_count: processedHospitals.reduce(
+          (sum, h) =>
+            sum + (h.previous_month_totals.fuel_type === "diesel" ? 1 : 0),
+          0
+        ),
+        previous_total_license_plate_count: processedHospitals.reduce(
+          (sum, h) => sum + (h.previous_month_totals.license_plate_count || 0),
+          0
+        ),
         overall_changes: {
           kwh: 0, // Will be calculated below
           water: 0,
@@ -325,6 +415,8 @@ export function useAllDepartments() {
           waste_type3: 0,
           waste_type4: 0,
           co2: 0,
+          kilometers: 0,
+          renewable_energy: 0,
         },
       };
 
@@ -375,6 +467,24 @@ export function useAllDepartments() {
           cumulative.previous_total_co2 > 0
             ? ((cumulative.total_co2 - cumulative.previous_total_co2) /
                 cumulative.previous_total_co2) *
+              100
+            : 0,
+        kilometers:
+          cumulative.previous_total_kilometers_travelled > 0
+            ? ((
+                cumulative.total_kilometers_travelled -
+                cumulative.previous_total_kilometers_travelled
+              ) /
+                cumulative.previous_total_kilometers_travelled) *
+              100
+            : 0,
+        renewable_energy:
+          cumulative.previous_total_renewable_energy_created > 0
+            ? ((
+                cumulative.total_renewable_energy_created -
+                cumulative.previous_total_renewable_energy_created
+              ) /
+                cumulative.previous_total_renewable_energy_created) *
               100
             : 0,
       };
