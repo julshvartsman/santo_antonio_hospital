@@ -741,6 +741,68 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
+      {/* CO2 Emissions Trend Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            CO₂ Emissions Trend Analysis
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            System-wide CO₂ emissions trends across all hospitals
+          </p>
+        </CardHeader>
+        <CardContent>
+          {cumulativeMetrics ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-lg">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-600">
+                    {cumulativeMetrics.total_co2.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-orange-600 mt-1">kg CO₂e</div>
+                  <div className="text-xs text-gray-600 mt-2">Total Emissions</div>
+                  <div className={`text-xs mt-1 ${cumulativeMetrics.overall_changes.co2 > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {cumulativeMetrics.overall_changes.co2 > 0 ? '+' : ''}{cumulativeMetrics.overall_changes.co2.toFixed(1)}% vs last month
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-lg">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">
+                    {Math.round(cumulativeMetrics.total_co2 / (departmentData.length || 1)).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-blue-600 mt-1">kg CO₂e</div>
+                  <div className="text-xs text-gray-600 mt-2">Average per Hospital</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Across {departmentData.length} hospitals
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">
+                    {cumulativeMetrics.total_renewable_energy_created ? 
+                      Math.round((cumulativeMetrics.total_renewable_energy_created / cumulativeMetrics.total_co2) * 100).toLocaleString() : '0'}
+                  </div>
+                  <div className="text-sm text-green-600 mt-1">%</div>
+                  <div className="text-xs text-gray-600 mt-2">Renewable Energy Ratio</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Renewable vs Total Energy
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading CO₂ emissions data...</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* All Forms Data - Admin View */}
       <Card>
         <CardHeader>

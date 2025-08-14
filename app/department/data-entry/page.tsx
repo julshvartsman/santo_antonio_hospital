@@ -294,6 +294,50 @@ export default function DepartmentDataEntry() {
             </CardContent>
           </Card>
 
+          {/* CO2 Emissions Trend Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>12-Month CO₂ Emissions Trend</CardTitle>
+              <CardContent className="pt-0">
+                Your hospital's CO₂ emissions over the past year
+              </CardContent>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Sparkline 
+                  data={entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []} 
+                />
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-sm text-gray-500">Current</div>
+                    <div className="text-lg font-semibold">
+                      {entriesData?.current_month_entry?.co2_emissions?.toLocaleString() ||
+                        "0"}{" "}
+                      kg CO₂e
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Average</div>
+                    <div className="text-lg font-semibold">
+                      {Math.round(
+                        (entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []).reduce((a, b) => a + b, 0) /
+                          (entriesData?.historical_entries?.length || 1)
+                      ).toLocaleString()}{" "}
+                      kg CO₂e
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Peak</div>
+                    <div className="text-lg font-semibold">
+                      {Math.max(...(entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []), 0).toLocaleString()}{" "}
+                      kg CO₂e
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Report Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
@@ -355,11 +399,55 @@ export default function DepartmentDataEntry() {
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">CO₂ Trend</span>
+                    <div className="flex items-center text-green-600">
+                      <TrendingDown className="h-4 w-4 mr-1" />
+                      <span className="text-sm">-15%</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Waste Trend</span>
                     <div className="flex items-center text-red-600">
                       <TrendingUp className="h-4 w-4 mr-1" />
                       <span className="text-sm">+5%</span>
                     </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full">
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5" />
+                  <span>CO₂ Emissions</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Current Month</span>
+                    <span className="text-sm font-medium">
+                      {entriesData?.current_month_entry?.co2_emissions?.toLocaleString() || "0"} kg CO₂e
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Monthly Average</span>
+                    <span className="text-sm font-medium">
+                      {Math.round(
+                        (entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []).reduce((a, b) => a + b, 0) /
+                          (entriesData?.historical_entries?.length || 1)
+                      ).toLocaleString()} kg CO₂e
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Year Total</span>
+                    <span className="text-sm font-medium">
+                      {(entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []).reduce((a, b) => a + b, 0).toLocaleString()} kg CO₂e
+                    </span>
                   </div>
                   <Button variant="outline" size="sm" className="w-full">
                     View Details
@@ -441,8 +529,6 @@ export default function DepartmentDataEntry() {
               </CardContent>
             </Card>
           </div>
-
-
         </TabsContent>
       </Tabs>
     </div>
