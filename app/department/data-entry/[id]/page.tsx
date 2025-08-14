@@ -74,7 +74,7 @@ export default function DepartmentDataEntryForm() {
   const { form, loading, error, saving, saveForm, submitForm, refresh } =
     useFormById(formId);
 
-  const handleSave = async (data: Record<string, number>) => {
+  const handleSave = async (data: Record<string, any>) => {
     try {
       console.log("Saving form data:", data);
       await saveForm(data);
@@ -85,7 +85,7 @@ export default function DepartmentDataEntryForm() {
     }
   };
 
-  const handleSubmit = async (data: Record<string, number>) => {
+  const handleSubmit = async (data: Record<string, any>) => {
     try {
       console.log("Submitting form data:", data);
       await submitForm(data);

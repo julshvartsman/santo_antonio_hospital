@@ -45,26 +45,28 @@ export default function FAQPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Filter FAQs based on search term
-  const filteredFAQs = mockFAQs.filter(
-    (faq) => {
-      const currentLanguage = language.language;
-      const question = currentLanguage === "pt" ? faq.question_pt || faq.question : faq.question;
-      const answer = currentLanguage === "pt" ? faq.answer_pt || faq.answer : faq.answer;
-      const category = currentLanguage === "pt" ? faq.category_pt || faq.category : faq.category;
-      
-      return (
-        question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-  );
+  const filteredFAQs = mockFAQs.filter((faq) => {
+    const currentLanguage = language.language;
+    const question =
+      currentLanguage === "pt" ? faq.question_pt || faq.question : faq.question;
+    const answer =
+      currentLanguage === "pt" ? faq.answer_pt || faq.answer : faq.answer;
+    const category =
+      currentLanguage === "pt" ? faq.category_pt || faq.category : faq.category;
+
+    return (
+      question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   // Group FAQs by category
   const faqsByCategory = filteredFAQs.reduce((acc, faq) => {
     const currentLanguage = language.language;
-    const category = currentLanguage === "pt" ? faq.category_pt || faq.category : faq.category;
-    
+    const category =
+      currentLanguage === "pt" ? faq.category_pt || faq.category : faq.category;
+
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -83,9 +85,7 @@ export default function FAQPage() {
             FAQ
           </h1>
         </div>
-        <p className="text-gray-600 mt-2">
-          {language.t("faq.subtitle")}
-        </p>
+        <p className="text-gray-600 mt-2">{language.t("faq.subtitle")}</p>
       </div>
 
       {/* Search */}
@@ -125,9 +125,15 @@ export default function FAQPage() {
                 <Accordion type="single" collapsible className="w-full">
                   {faqs.map((faq) => {
                     const currentLanguage = language.language;
-                    const question = currentLanguage === "pt" ? faq.question_pt || faq.question : faq.question;
-                    const answer = currentLanguage === "pt" ? faq.answer_pt || faq.answer : faq.answer;
-                    
+                    const question =
+                      currentLanguage === "pt"
+                        ? faq.question_pt || faq.question
+                        : faq.question;
+                    const answer =
+                      currentLanguage === "pt"
+                        ? faq.answer_pt || faq.answer
+                        : faq.answer;
+
                     return (
                       <AccordionItem key={faq.id} value={faq.id}>
                         <AccordionTrigger className="text-left">

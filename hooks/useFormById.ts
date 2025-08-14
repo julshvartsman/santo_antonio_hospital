@@ -140,7 +140,8 @@ export const useFormById = (formId: string) => {
       co2_emissions: Number(data.co2_emissions) || 0,
       fuel_type: typeof data.fuel_type === "string" ? data.fuel_type : "",
       kilometers_travelled: Number(data.kilometers_travelled) || 0,
-      license_plate: typeof data.license_plate === "string" ? data.license_plate : "",
+      license_plate:
+        typeof data.license_plate === "string" ? data.license_plate : "",
       renewable_energy_created: Number(data.renewable_energy_created) || 0,
     };
   };
@@ -153,7 +154,10 @@ export const useFormById = (formId: string) => {
       setError(null);
 
       // Get current user ID from Supabase auth
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
       if (authError || !authUser) {
         throw new Error("Authentication error");
       }
@@ -232,7 +236,10 @@ export const useFormById = (formId: string) => {
       setError(null);
 
       // Get current user ID from Supabase auth
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser();
       if (authError || !authUser) {
         throw new Error("Authentication error");
       }
@@ -304,7 +311,9 @@ export const useFormById = (formId: string) => {
         console.error("Entry result:", entryResult);
         console.error("Entry data that was sent:", entryData);
         console.error("Existing entry found:", existingEntry);
-        throw new Error(`Failed to sync to entries table: ${entryResult.error.message}`);
+        throw new Error(
+          `Failed to sync to entries table: ${entryResult.error.message}`
+        );
       } else {
         console.log("Successfully synced to entries table:", entryResult.data);
       }

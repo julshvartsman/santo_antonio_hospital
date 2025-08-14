@@ -761,34 +761,55 @@ export default function AdminDashboard() {
                     {cumulativeMetrics.total_co2.toLocaleString()}
                   </div>
                   <div className="text-sm text-orange-600 mt-1">kg CO₂e</div>
-                  <div className="text-xs text-gray-600 mt-2">Total Emissions</div>
-                  <div className={`text-xs mt-1 ${cumulativeMetrics.overall_changes.co2 > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {cumulativeMetrics.overall_changes.co2 > 0 ? '+' : ''}{cumulativeMetrics.overall_changes.co2.toFixed(1)}% vs last month
+                  <div className="text-xs text-gray-600 mt-2">
+                    Total Emissions
+                  </div>
+                  <div
+                    className={`text-xs mt-1 ${
+                      cumulativeMetrics.overall_changes.co2 > 0
+                        ? "text-red-600"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {cumulativeMetrics.overall_changes.co2 > 0 ? "+" : ""}
+                    {cumulativeMetrics.overall_changes.co2.toFixed(1)}% vs last
+                    month
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-lg">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">
-                    {Math.round(cumulativeMetrics.total_co2 / (departmentData.length || 1)).toLocaleString()}
+                    {Math.round(
+                      cumulativeMetrics.total_co2 / (departmentData.length || 1)
+                    ).toLocaleString()}
                   </div>
                   <div className="text-sm text-blue-600 mt-1">kg CO₂e</div>
-                  <div className="text-xs text-gray-600 mt-2">Average per Hospital</div>
+                  <div className="text-xs text-gray-600 mt-2">
+                    Average per Hospital
+                  </div>
                   <div className="text-xs text-gray-600 mt-1">
                     Across {departmentData.length} hospitals
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600">
-                    {cumulativeMetrics.total_renewable_energy_created ? 
-                      Math.round((cumulativeMetrics.total_renewable_energy_created / cumulativeMetrics.total_co2) * 100).toLocaleString() : '0'}
+                    {cumulativeMetrics.total_renewable_energy_created
+                      ? Math.round(
+                          (cumulativeMetrics.total_renewable_energy_created /
+                            cumulativeMetrics.total_co2) *
+                            100
+                        ).toLocaleString()
+                      : "0"}
                   </div>
                   <div className="text-sm text-green-600 mt-1">%</div>
-                  <div className="text-xs text-gray-600 mt-2">Renewable Energy Ratio</div>
+                  <div className="text-xs text-gray-600 mt-2">
+                    Renewable Energy Ratio
+                  </div>
                   <div className="text-xs text-gray-600 mt-1">
                     Renewable vs Total Energy
                   </div>

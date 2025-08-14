@@ -3,8 +3,10 @@
 ## Issues Identified and Fixed
 
 ### 1. Data Type Conversion Issues
+
 **Problem**: Form inputs were sending string values but database expected numbers
 **Fix**: Added proper data type conversion in `useFormById.ts`
+
 ```javascript
 const convertFormData = (data: Record<string, number>) => {
   return {
@@ -20,22 +22,28 @@ const convertFormData = (data: Record<string, number>) => {
 ```
 
 ### 2. Error Handling and Debugging
+
 **Problem**: Form submission errors were not properly logged or handled
 **Fix**: Added comprehensive error logging and handling
+
 - Added console.error statements for debugging
 - Added try-catch blocks in form submission handlers
 - Added success logging for verification
 
 ### 3. Form Field Validation
+
 **Problem**: Form validation wasn't properly handling edge cases
 **Fix**: Improved validation in `DynamicForm.tsx`
+
 - Better handling of empty/null values
 - Proper number conversion for form inputs
 - Enhanced error state management
 
 ### 4. Database Column Mapping
+
 **Problem**: Form fields needed to exactly match database columns
 **Fix**: Verified and ensured correct mapping
+
 - `kwh_usage` → `kwh_usage` ✅
 - `water_usage_m3` → `water_usage_m3` ✅
 - `type1` → `type1` ✅
@@ -47,6 +55,7 @@ const convertFormData = (data: Record<string, number>) => {
 ## Database Schema Requirements
 
 The `entries` table must have these columns:
+
 ```sql
 CREATE TABLE entries (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -74,22 +83,26 @@ CREATE TABLE entries (
 ## Files Modified
 
 1. **`hooks/useFormById.ts`**
+
    - Added `convertFormData()` helper function
    - Enhanced error handling and logging
    - Improved data type conversion
    - Added comprehensive debugging
 
 2. **`components/forms/DynamicForm.tsx`**
+
    - Improved form validation
    - Enhanced error handling in save/submit functions
    - Better number conversion for form inputs
 
 3. **`app/department/data-entry/[id]/page.tsx`**
+
    - Added try-catch blocks for form handlers
    - Added debugging console logs
    - Improved error handling
 
 4. **`lib/supabaseClient.ts`**
+
    - Updated Entry interface to match database schema
 
 5. **`hooks/useMyEntries.ts`**
@@ -108,4 +121,4 @@ CREATE TABLE entries (
 1. Ensure the database schema is up to date by running `update-schema-7-metrics.sql`
 2. Test form submission with the updated code
 3. Monitor console logs for any remaining issues
-4. Verify data is being saved to the correct table and columns 
+4. Verify data is being saved to the correct table and columns

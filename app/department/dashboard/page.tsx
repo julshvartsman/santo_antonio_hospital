@@ -269,14 +269,19 @@ export default function DepartmentDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Sparkline data={data.historical_entries.map((entry) => entry.co2_emissions || 0)} />
+            <Sparkline
+              data={data.historical_entries.map(
+                (entry) => entry.co2_emissions || 0
+              )}
+            />
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-sm text-gray-500">
                   {language.t("common.current")}
                 </div>
                 <div className="text-lg font-semibold">
-                  {data.current_month_entry?.co2_emissions?.toLocaleString() || "0"}{" "}
+                  {data.current_month_entry?.co2_emissions?.toLocaleString() ||
+                    "0"}{" "}
                   kg CO₂e
                 </div>
               </div>
@@ -299,7 +304,12 @@ export default function DepartmentDashboard() {
                   {language.t("common.peak")}
                 </div>
                 <div className="text-lg font-semibold">
-                  {Math.max(...data.historical_entries.map((entry) => entry.co2_emissions || 0), 0).toLocaleString()}{" "}
+                  {Math.max(
+                    ...data.historical_entries.map(
+                      (entry) => entry.co2_emissions || 0
+                    ),
+                    0
+                  ).toLocaleString()}{" "}
                   kg CO₂e
                 </div>
               </div>

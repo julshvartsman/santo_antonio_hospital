@@ -295,10 +295,18 @@ export default function DepartmentDataEntry() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{language.t("dept.dataEntry.table.formName")}</TableHead>
-                    <TableHead>{language.t("dept.dataEntry.table.status")}</TableHead>
-                    <TableHead>{language.t("dept.dataEntry.table.submittedDate")}</TableHead>
-                    <TableHead className="text-right">{language.t("dept.dataEntry.table.actions")}</TableHead>
+                    <TableHead>
+                      {language.t("dept.dataEntry.table.formName")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("dept.dataEntry.table.status")}
+                    </TableHead>
+                    <TableHead>
+                      {language.t("dept.dataEntry.table.submittedDate")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {language.t("dept.dataEntry.table.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -319,7 +327,9 @@ export default function DepartmentDataEntry() {
                               : "bg-gray-100 text-gray-800"
                           }
                         >
-                          {form.submitted ? language.t("dept.dataEntry.status.submitted") : language.t("dept.dataEntry.status.draft")}
+                          {form.submitted
+                            ? language.t("dept.dataEntry.status.submitted")
+                            : language.t("dept.dataEntry.status.draft")}
                         </Badge>
                       </TableCell>
                       <TableCell>

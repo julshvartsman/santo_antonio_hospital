@@ -345,7 +345,8 @@ export function useAllDepartments() {
           0
         ),
         total_gas_count: processedHospitals.reduce(
-          (sum, h) => sum + (h.current_month_totals.fuel_type === "gas" ? 1 : 0),
+          (sum, h) =>
+            sum + (h.current_month_totals.fuel_type === "gas" ? 1 : 0),
           0
         ),
         total_diesel_count: processedHospitals.reduce(
@@ -395,7 +396,8 @@ export function useAllDepartments() {
           0
         ),
         previous_total_gas_count: processedHospitals.reduce(
-          (sum, h) => sum + (h.previous_month_totals.fuel_type === "gas" ? 1 : 0),
+          (sum, h) =>
+            sum + (h.previous_month_totals.fuel_type === "gas" ? 1 : 0),
           0
         ),
         previous_total_diesel_count: processedHospitals.reduce(
@@ -471,19 +473,15 @@ export function useAllDepartments() {
             : 0,
         kilometers:
           cumulative.previous_total_kilometers_travelled > 0
-            ? ((
-                cumulative.total_kilometers_travelled -
-                cumulative.previous_total_kilometers_travelled
-              ) /
+            ? ((cumulative.total_kilometers_travelled -
+                cumulative.previous_total_kilometers_travelled) /
                 cumulative.previous_total_kilometers_travelled) *
               100
             : 0,
         renewable_energy:
           cumulative.previous_total_renewable_energy_created > 0
-            ? ((
-                cumulative.total_renewable_energy_created -
-                cumulative.previous_total_renewable_energy_created
-              ) /
+            ? ((cumulative.total_renewable_energy_created -
+                cumulative.previous_total_renewable_energy_created) /
                 cumulative.previous_total_renewable_energy_created) *
               100
             : 0,

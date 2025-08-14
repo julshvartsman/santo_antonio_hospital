@@ -33,6 +33,10 @@ interface ReportData {
   waste_type3: number;
   waste_type4: number;
   co2_emissions: number;
+  fuel_type?: string;
+  kilometers_travelled?: number;
+  license_plate?: string;
+  renewable_energy_created?: number;
   submitted: boolean;
   submitted_at: string | null;
   created_at: string;
@@ -214,6 +218,10 @@ export default function HospitalReportPage() {
           waste_type3: entriesData.waste_type3 || 0,
           waste_type4: entriesData.waste_type4 || 0,
           co2_emissions: entriesData.co2_emissions || 0,
+          fuel_type: entriesData.fuel_type || "",
+          kilometers_travelled: entriesData.kilometers_travelled || 0,
+          license_plate: entriesData.license_plate || "",
+          renewable_energy_created: entriesData.renewable_energy_created || 0,
           submitted: entriesData.submitted || false,
           submitted_at: entriesData.submitted_at,
           created_at: entriesData.created_at,
@@ -303,6 +311,10 @@ export default function HospitalReportPage() {
         waste_type3: editableData.waste_type3,
         waste_type4: editableData.waste_type4,
         co2_emissions: editableData.co2_emissions,
+        fuel_type: editableData.fuel_type,
+        kilometers_travelled: editableData.kilometers_travelled,
+        license_plate: editableData.license_plate,
+        renewable_energy_created: editableData.renewable_energy_created,
         submitted: editableData.submitted,
         updated_at: new Date().toISOString(),
       });
