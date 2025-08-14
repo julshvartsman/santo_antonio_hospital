@@ -107,10 +107,10 @@ export default function LoginPage() {
             className="flex items-center gap-2 text-sm"
           >
             <span className="text-lg">🌐</span>
-            {language.language === "en" ? "PT" : "EN"}
+            {language.language === "pt" ? "EN" : "PT"}
           </Button>
         </div>
-        
+
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">

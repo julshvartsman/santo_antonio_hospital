@@ -232,10 +232,10 @@ export default function SignupPage() {
             className="flex items-center gap-2 text-sm"
           >
             <span className="text-lg">🌐</span>
-            {language.language === "en" ? "PT" : "EN"}
+            {language.language === "pt" ? "EN" : "PT"}
           </Button>
         </div>
-        
+
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <Link
