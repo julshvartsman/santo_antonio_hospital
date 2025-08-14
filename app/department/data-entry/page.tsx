@@ -92,6 +92,83 @@ export default function DepartmentDataEntry() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("data-entry");
 
+  // Function to download monthly report as CSV
+  const downloadMonthlyReport = () => {
+    if (!entriesData?.current_month_entry) {
+      alert("No current month data available for download");
+      return;
+    }
+
+    const currentMonth = new Date().toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
+
+    const csvData = [
+      ["Monthly Sustainability Report", currentMonth],
+      [""],
+      ["Metric", "Value", "Unit"],
+      ["Energy Usage", entriesData.current_month_entry.kwh_usage || 0, "kWh"],
+      ["Water Usage", entriesData.current_month_entry.water_usage_m3 || 0, "m³"],
+      ["Type 1 Waste", entriesData.current_month_entry.type1 || 0, "kg"],
+      ["Type 2 Waste", entriesData.current_month_entry.type2 || 0, "kg"],
+      ["Type 3 Waste", entriesData.current_month_entry.type3 || 0, "kg"],
+      ["Type 4 Waste", entriesData.current_month_entry.type4 || 0, "kg"],
+      ["CO₂ Emissions", entriesData.current_month_entry.co2_emissions || 0, "kg CO₂e"],
+      ["Fuel Type", entriesData.current_month_entry.fuel_type || "N/A", ""],
+      ["Kilometers Travelled", entriesData.current_month_entry.kilometers_travelled || 0, "km"],
+      ["License Plate", entriesData.current_month_entry.license_plate || "N/A", ""],
+      ["Renewable Energy Created", entriesData.current_month_entry.renewable_energy_created || 0, "kWh"],
+      [""],
+      ["Report Generated", new Date().toLocaleDateString()],
+      ["Submitted", entriesData.current_month_entry.submitted ? "Yes" : "No"],
+      ["Submitted Date", entriesData.current_month_entry.submitted_at ? new Date(entriesData.current_month_entry.submitted_at).toLocaleDateString() : "Not submitted"],
+    ];
+
+    const csvContent = csvData.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sustainability-report-${currentMonth.replace(" ", "-")}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  // Function to view trend analysis details
+  const viewTrendAnalysis = () => {
+    // Navigate to a detailed trend analysis page or show modal
+    alert("Trend Analysis Details:\n\n" +
+          "Energy Trend: -12% (Improving)\n" +
+          "Water Trend: -8% (Improving)\n" +
+          "CO₂ Trend: -15% (Improving)\n" +
+          "Waste Trend: +5% (Needs attention)\n\n" +
+          "This feature will show detailed trend analysis with charts and recommendations.");
+  };
+
+  // Function to view CO2 emissions details
+  const viewCO2Details = () => {
+    if (!entriesData?.historical_entries) {
+      alert("No CO₂ emissions data available");
+      return;
+    }
+
+    const co2Data = entriesData.historical_entries.map(entry => entry.co2_emissions || 0);
+    const average = co2Data.reduce((a, b) => a + b, 0) / co2Data.length;
+    const total = co2Data.reduce((a, b) => a + b, 0);
+    const peak = Math.max(...co2Data);
+    const current = entriesData.current_month_entry?.co2_emissions || 0;
+
+    alert("CO₂ Emissions Detailed Analysis:\n\n" +
+          `Current Month: ${current.toLocaleString()} kg CO₂e\n` +
+          `Monthly Average: ${Math.round(average).toLocaleString()} kg CO₂e\n` +
+          `Peak Month: ${peak.toLocaleString()} kg CO₂e\n` +
+          `Year Total: ${total.toLocaleString()} kg CO₂e\n\n` +
+          "This feature will show detailed CO₂ analysis with breakdowns by source and recommendations for reduction.");
+  };
+
   const loading = formsLoading || entriesLoading;
   const error = formsError || entriesError;
 
@@ -304,8 +381,12 @@ export default function DepartmentDataEntry() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Sparkline 
-                  data={entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []} 
+                <Sparkline
+                  data={
+                    entriesData?.historical_entries?.map(
+                      (entry) => entry.co2_emissions || 0
+                    ) || []
+                  }
                 />
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
@@ -320,7 +401,11 @@ export default function DepartmentDataEntry() {
                     <div className="text-sm text-gray-500">Average</div>
                     <div className="text-lg font-semibold">
                       {Math.round(
-                        (entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []).reduce((a, b) => a + b, 0) /
+                        (
+                          entriesData?.historical_entries?.map(
+                            (entry) => entry.co2_emissions || 0
+                          ) || []
+                        ).reduce((a, b) => a + b, 0) /
                           (entriesData?.historical_entries?.length || 1)
                       ).toLocaleString()}{" "}
                       kg CO₂e
@@ -329,7 +414,12 @@ export default function DepartmentDataEntry() {
                   <div>
                     <div className="text-sm text-gray-500">Peak</div>
                     <div className="text-lg font-semibold">
-                      {Math.max(...(entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []), 0).toLocaleString()}{" "}
+                      {Math.max(
+                        ...(entriesData?.historical_entries?.map(
+                          (entry) => entry.co2_emissions || 0
+                        ) || []),
+                        0
+                      ).toLocaleString()}{" "}
                       kg CO₂e
                     </div>
                   </div>
@@ -367,7 +457,12 @@ export default function DepartmentDataEntry() {
                         : "Not submitted"}
                     </span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={downloadMonthlyReport}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
@@ -412,7 +507,12 @@ export default function DepartmentDataEntry() {
                       <span className="text-sm">+5%</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={viewTrendAnalysis}
+                  >
                     View Details
                   </Button>
                 </div>
@@ -431,25 +531,46 @@ export default function DepartmentDataEntry() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Current Month</span>
                     <span className="text-sm font-medium">
-                      {entriesData?.current_month_entry?.co2_emissions?.toLocaleString() || "0"} kg CO₂e
+                      {entriesData?.current_month_entry?.co2_emissions?.toLocaleString() ||
+                        "0"}{" "}
+                      kg CO₂e
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Monthly Average</span>
+                    <span className="text-sm text-gray-600">
+                      Monthly Average
+                    </span>
                     <span className="text-sm font-medium">
                       {Math.round(
-                        (entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []).reduce((a, b) => a + b, 0) /
+                        (
+                          entriesData?.historical_entries?.map(
+                            (entry) => entry.co2_emissions || 0
+                          ) || []
+                        ).reduce((a, b) => a + b, 0) /
                           (entriesData?.historical_entries?.length || 1)
-                      ).toLocaleString()} kg CO₂e
+                      ).toLocaleString()}{" "}
+                      kg CO₂e
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Year Total</span>
                     <span className="text-sm font-medium">
-                      {(entriesData?.historical_entries?.map((entry) => entry.co2_emissions || 0) || []).reduce((a, b) => a + b, 0).toLocaleString()} kg CO₂e
+                      {(
+                        entriesData?.historical_entries?.map(
+                          (entry) => entry.co2_emissions || 0
+                        ) || []
+                      )
+                        .reduce((a, b) => a + b, 0)
+                        .toLocaleString()}{" "}
+                      kg CO₂e
                     </span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={viewCO2Details}
+                  >
                     View Details
                   </Button>
                 </div>
