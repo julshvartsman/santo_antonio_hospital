@@ -49,8 +49,10 @@ export const useMyFormList = () => {
       setLoading(true);
       setError(null);
 
-      // Generate all 12 months for the current year
-      const currentYear = new Date().getFullYear();
+      // Generate 12 months starting from current month
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1; // 1-12
+      const currentYear = now.getFullYear();
       const monthNames = [
         "January",
         "February",
@@ -66,26 +68,33 @@ export const useMyFormList = () => {
         "December",
       ];
 
-      // Create base forms for all 12 months
+      // Create base forms for current month + next 11 months
       const baseForms: FormListEntry[] = Array.from({ length: 12 }, (_, index) => {
-        const month = index + 1;
-        const formId = `${user.hospital_id}-${month.toString().padStart(2, '0')}-${currentYear}`;
+        const monthOffset = index;
+        const targetMonth = currentMonth + monthOffset;
+        const targetYear = currentYear + Math.floor((targetMonth - 1) / 12);
+        const month = ((targetMonth - 1) % 12) + 1; // Wrap around to 1-12
+        
+        const formId = `${user.hospital_id}-${month.toString().padStart(2, '0')}-${targetYear}`;
         return {
           id: formId,
           month,
-          year: currentYear,
-          form_name: `${monthNames[month - 1]} ${currentYear}`,
+          year: targetYear,
+          form_name: `${monthNames[month - 1]} ${targetYear}`,
           submitted: false,
           submitted_at: null,
         };
       });
 
       // Fetch existing forms from database to update status
+      // Get all form IDs we're generating to check which ones exist
+      const formIds = baseForms.map(form => form.id);
+      
       const { data: existingForms, error: fetchError } = await supabase
         .from("forms")
         .select("id, month, year, submitted, submitted_at")
         .eq("hospital_id", user.hospital_id)
-        .eq("year", currentYear);
+        .in("id", formIds);
 
       if (fetchError) {
         throw fetchError;

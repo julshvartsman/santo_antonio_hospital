@@ -16,6 +16,7 @@ import {
 import { useMyFormList } from "@/hooks/useFormList";
 import { useMyEntries } from "@/hooks/useMyEntries";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import {
   FileText,
   Eye,
@@ -87,6 +88,7 @@ export default function DepartmentDataEntry() {
     refresh: refreshEntries,
     exportToCSV,
   } = useMyEntries();
+  const { user } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("data-entry");
 
@@ -381,15 +383,39 @@ export default function DepartmentDataEntry() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Due Date</span>
-                    <span className="text-sm">Feb 15, 2024</span>
+                    <span className="text-sm">
+                      {(() => {
+                        const now = new Date();
+                        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+                        return nextMonth.toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        });
+                      })()}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Days Left</span>
                     <span className="text-sm text-orange-600 font-medium">
-                      12
+                      {(() => {
+                        const now = new Date();
+                        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+                        const daysLeft = Math.ceil((nextMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                        return daysLeft;
+                      })()}
                     </span>
                   </div>
-                  <Button size="sm" className="w-full">
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      const now = new Date();
+                      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                      const formId = `${user?.hospital_id}-${(nextMonth.getMonth() + 1).toString().padStart(2, '0')}-${nextMonth.getFullYear()}`;
+                      router.push(`/department/data-entry/${formId}`);
+                    }}
+                  >
                     Start Report
                   </Button>
                 </div>
