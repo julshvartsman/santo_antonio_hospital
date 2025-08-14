@@ -111,9 +111,9 @@ interface DynamicFormProps {
   hospitalId: string;
   month: number;
   year: number;
-  initialData?: Record<string, number>;
-  onSubmit?: (data: Record<string, number>) => void;
-  onSave?: (data: Record<string, number>) => void;
+  initialData?: Record<string, any>;
+  onSubmit?: (data: Record<string, any>) => void;
+  onSave?: (data: Record<string, any>) => void;
   isSubmitted?: boolean;
   loading?: boolean;
   saving?: boolean;
@@ -151,12 +151,20 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       ) {
         newErrors[metric.key] = `${metric.label} is required`;
       } else if (value !== undefined && value !== null) {
-        if (metric.type === "number" && metric.min !== undefined && value < metric.min) {
+        if (
+          metric.type === "number" &&
+          metric.min !== undefined &&
+          value < metric.min
+        ) {
           newErrors[
             metric.key
           ] = `${metric.label} must be at least ${metric.min}`;
         }
-        if (metric.type === "number" && metric.max !== undefined && value > metric.max) {
+        if (
+          metric.type === "number" &&
+          metric.max !== undefined &&
+          value > metric.max
+        ) {
           newErrors[
             metric.key
           ] = `${metric.label} must be at most ${metric.max}`;
@@ -168,7 +176,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (key: string, value: string, type: string = "number") => {
+  const handleInputChange = (
+    key: string,
+    value: string,
+    type: string = "number"
+  ) => {
     let finalValue: any = value;
     if (type === "number") {
       const numValue = value === "" ? 0 : parseFloat(value);
@@ -291,8 +303,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 <select
                   id={metric.key}
                   value={(formData[metric.key] as string) || ""}
-                  onChange={(e) => handleInputChange(metric.key, e.target.value, "select")}
-                  className={`w-full rounded-md border px-3 py-2 text-sm ${errors[metric.key] ? "border-red-500" : "border-input"}`}
+                  onChange={(e) =>
+                    handleInputChange(metric.key, e.target.value, "select")
+                  }
+                  className={`w-full rounded-md border px-3 py-2 text-sm ${
+                    errors[metric.key] ? "border-red-500" : "border-input"
+                  }`}
                   disabled={isSubmitted}
                 >
                   <option value="">Select fuel type</option>
@@ -307,7 +323,9 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   id={metric.key}
                   type={metric.type === "text" ? "text" : "number"}
                   value={(formData[metric.key] as any) ?? ""}
-                  onChange={(e) => handleInputChange(metric.key, e.target.value, metric.type)}
+                  onChange={(e) =>
+                    handleInputChange(metric.key, e.target.value, metric.type)
+                  }
                   placeholder={`Enter ${metric.label.toLowerCase()}`}
                   min={metric.min}
                   max={metric.max}
