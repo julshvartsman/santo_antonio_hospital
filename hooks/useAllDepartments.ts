@@ -197,10 +197,10 @@ export function useAllDepartments() {
           const current_month_totals = {
             kwh_usage: currentEntry?.kwh_usage || 0,
             water_usage_m3: currentEntry?.water_usage_m3 || 0,
-            waste_type1: currentEntry?.waste_type1 || 0,
-            waste_type2: currentEntry?.waste_type2 || 0,
-            waste_type3: currentEntry?.waste_type3 || 0,
-            waste_type4: currentEntry?.waste_type4 || 0,
+            waste_type1: currentEntry?.type1 || 0,
+            waste_type2: currentEntry?.type2 || 0,
+            waste_type3: currentEntry?.type3 || 0,
+            waste_type4: currentEntry?.type4 || 0,
             co2_emissions: currentEntry?.co2_emissions || 0,
             kilometers_travelled: currentEntry?.kilometers_travelled || 0,
             renewable_energy_created:
@@ -212,10 +212,10 @@ export function useAllDepartments() {
           const previous_month_totals = {
             kwh_usage: previousEntry?.kwh_usage || 0,
             water_usage_m3: previousEntry?.water_usage_m3 || 0,
-            waste_type1: previousEntry?.waste_type1 || 0,
-            waste_type2: previousEntry?.waste_type2 || 0,
-            waste_type3: previousEntry?.waste_type3 || 0,
-            waste_type4: previousEntry?.waste_type4 || 0,
+            waste_type1: previousEntry?.type1 || 0,
+            waste_type2: previousEntry?.type2 || 0,
+            waste_type3: previousEntry?.type3 || 0,
+            waste_type4: previousEntry?.type4 || 0,
             co2_emissions: previousEntry?.co2_emissions || 0,
             kilometers_travelled: previousEntry?.kilometers_travelled || 0,
             renewable_energy_created:
