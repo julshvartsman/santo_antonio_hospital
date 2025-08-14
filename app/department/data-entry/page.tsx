@@ -17,6 +17,7 @@ import { useMyFormList } from "@/hooks/useFormList";
 import { useMyEntries } from "@/hooks/useMyEntries";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useApp } from "@/components/providers/AppProvider";
 import {
   FileText,
   Eye,
@@ -89,6 +90,7 @@ export default function DepartmentDataEntry() {
     exportToCSV,
   } = useMyEntries();
   const { user } = useAuth();
+  const { language } = useApp();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("data-entry");
 
@@ -109,23 +111,50 @@ export default function DepartmentDataEntry() {
       [""],
       ["Metric", "Value", "Unit"],
       ["Energy Usage", entriesData.current_month_entry.kwh_usage || 0, "kWh"],
-      ["Water Usage", entriesData.current_month_entry.water_usage_m3 || 0, "m³"],
+      [
+        "Water Usage",
+        entriesData.current_month_entry.water_usage_m3 || 0,
+        "m³",
+      ],
       ["Type 1 Waste", entriesData.current_month_entry.type1 || 0, "kg"],
       ["Type 2 Waste", entriesData.current_month_entry.type2 || 0, "kg"],
       ["Type 3 Waste", entriesData.current_month_entry.type3 || 0, "kg"],
       ["Type 4 Waste", entriesData.current_month_entry.type4 || 0, "kg"],
-      ["CO₂ Emissions", entriesData.current_month_entry.co2_emissions || 0, "kg CO₂e"],
+      [
+        "CO₂ Emissions",
+        entriesData.current_month_entry.co2_emissions || 0,
+        "kg CO₂e",
+      ],
       ["Fuel Type", entriesData.current_month_entry.fuel_type || "N/A", ""],
-      ["Kilometers Travelled", entriesData.current_month_entry.kilometers_travelled || 0, "km"],
-      ["License Plate", entriesData.current_month_entry.license_plate || "N/A", ""],
-      ["Renewable Energy Created", entriesData.current_month_entry.renewable_energy_created || 0, "kWh"],
+      [
+        "Kilometers Travelled",
+        entriesData.current_month_entry.kilometers_travelled || 0,
+        "km",
+      ],
+      [
+        "License Plate",
+        entriesData.current_month_entry.license_plate || "N/A",
+        "",
+      ],
+      [
+        "Renewable Energy Created",
+        entriesData.current_month_entry.renewable_energy_created || 0,
+        "kWh",
+      ],
       [""],
       ["Report Generated", new Date().toLocaleDateString()],
       ["Submitted", entriesData.current_month_entry.submitted ? "Yes" : "No"],
-      ["Submitted Date", entriesData.current_month_entry.submitted_at ? new Date(entriesData.current_month_entry.submitted_at).toLocaleDateString() : "Not submitted"],
+      [
+        "Submitted Date",
+        entriesData.current_month_entry.submitted_at
+          ? new Date(
+              entriesData.current_month_entry.submitted_at
+            ).toLocaleDateString()
+          : "Not submitted",
+      ],
     ];
 
-    const csvContent = csvData.map(row => row.join(",")).join("\n");
+    const csvContent = csvData.map((row) => row.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -140,12 +169,14 @@ export default function DepartmentDataEntry() {
   // Function to view trend analysis details
   const viewTrendAnalysis = () => {
     // Navigate to a detailed trend analysis page or show modal
-    alert("Trend Analysis Details:\n\n" +
-          "Energy Trend: -12% (Improving)\n" +
-          "Water Trend: -8% (Improving)\n" +
-          "CO₂ Trend: -15% (Improving)\n" +
-          "Waste Trend: +5% (Needs attention)\n\n" +
-          "This feature will show detailed trend analysis with charts and recommendations.");
+    alert(
+      "Trend Analysis Details:\n\n" +
+        "Energy Trend: -12% (Improving)\n" +
+        "Water Trend: -8% (Improving)\n" +
+        "CO₂ Trend: -15% (Improving)\n" +
+        "Waste Trend: +5% (Needs attention)\n\n" +
+        "This feature will show detailed trend analysis with charts and recommendations."
+    );
   };
 
   // Function to view CO2 emissions details
@@ -155,18 +186,22 @@ export default function DepartmentDataEntry() {
       return;
     }
 
-    const co2Data = entriesData.historical_entries.map(entry => entry.co2_emissions || 0);
+    const co2Data = entriesData.historical_entries.map(
+      (entry) => entry.co2_emissions || 0
+    );
     const average = co2Data.reduce((a, b) => a + b, 0) / co2Data.length;
     const total = co2Data.reduce((a, b) => a + b, 0);
     const peak = Math.max(...co2Data);
     const current = entriesData.current_month_entry?.co2_emissions || 0;
 
-    alert("CO₂ Emissions Detailed Analysis:\n\n" +
-          `Current Month: ${current.toLocaleString()} kg CO₂e\n` +
-          `Monthly Average: ${Math.round(average).toLocaleString()} kg CO₂e\n` +
-          `Peak Month: ${peak.toLocaleString()} kg CO₂e\n` +
-          `Year Total: ${total.toLocaleString()} kg CO₂e\n\n` +
-          "This feature will show detailed CO₂ analysis with breakdowns by source and recommendations for reduction.");
+    alert(
+      "CO₂ Emissions Detailed Analysis:\n\n" +
+        `Current Month: ${current.toLocaleString()} kg CO₂e\n` +
+        `Monthly Average: ${Math.round(average).toLocaleString()} kg CO₂e\n` +
+        `Peak Month: ${peak.toLocaleString()} kg CO₂e\n` +
+        `Year Total: ${total.toLocaleString()} kg CO₂e\n\n` +
+        "This feature will show detailed CO₂ analysis with breakdowns by source and recommendations for reduction."
+    );
   };
 
   const loading = formsLoading || entriesLoading;
@@ -177,7 +212,7 @@ export default function DepartmentDataEntry() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading data...</p>
+          <p className="text-gray-600">{language.t("common.loadingData")}</p>
         </div>
       </div>
     );
@@ -197,7 +232,7 @@ export default function DepartmentDataEntry() {
                 }}
                 className="mt-4"
               >
-                Try Again
+                {language.t("common.tryAgain")}
               </Button>
             </div>
           </CardContent>
@@ -220,10 +255,10 @@ export default function DepartmentDataEntry() {
       {/* Page Title */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          Data Entry & Reports
+          {language.t("dept.dataEntry.title")}
         </h1>
         <p className="text-gray-600 mt-2">
-          Manage your monthly sustainability data and view reports
+          {language.t("dept.dataEntry.subtitle")}
         </p>
       </div>
 
@@ -239,11 +274,11 @@ export default function DepartmentDataEntry() {
             className="flex items-center space-x-2"
           >
             <FileText className="h-4 w-4" />
-            <span>Data Entry</span>
+            <span>{language.t("dept.dataEntry.tab.entry")}</span>
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
-            <span>Reports & Analytics</span>
+            <span>{language.t("dept.dataEntry.tab.reports")}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -253,17 +288,17 @@ export default function DepartmentDataEntry() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
-                <span>Monthly Sustainability Forms</span>
+                <span>{language.t("dept.dataEntry.title")}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Form Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Submitted Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{language.t("dept.dataEntry.table.formName")}</TableHead>
+                    <TableHead>{language.t("dept.dataEntry.table.status")}</TableHead>
+                    <TableHead>{language.t("dept.dataEntry.table.submittedDate")}</TableHead>
+                    <TableHead className="text-right">{language.t("dept.dataEntry.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -284,7 +319,7 @@ export default function DepartmentDataEntry() {
                               : "bg-gray-100 text-gray-800"
                           }
                         >
-                          {form.submitted ? "Submitted" : "Draft"}
+                          {form.submitted ? language.t("dept.dataEntry.status.submitted") : language.t("dept.dataEntry.status.draft")}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -457,9 +492,9 @@ export default function DepartmentDataEntry() {
                         : "Not submitted"}
                     </span>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full"
                     onClick={downloadMonthlyReport}
                   >
@@ -507,9 +542,9 @@ export default function DepartmentDataEntry() {
                       <span className="text-sm">+5%</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full"
                     onClick={viewTrendAnalysis}
                   >
@@ -565,9 +600,9 @@ export default function DepartmentDataEntry() {
                       kg CO₂e
                     </span>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full"
                     onClick={viewCO2Details}
                   >

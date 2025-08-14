@@ -46,18 +46,29 @@ export default function FAQPage() {
 
   // Filter FAQs based on search term
   const filteredFAQs = mockFAQs.filter(
-    (faq) =>
-      faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      faq.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (faq) => {
+      const currentLanguage = language.language;
+      const question = currentLanguage === "pt" ? faq.question_pt || faq.question : faq.question;
+      const answer = currentLanguage === "pt" ? faq.answer_pt || faq.answer : faq.answer;
+      const category = currentLanguage === "pt" ? faq.category_pt || faq.category : faq.category;
+      
+      return (
+        question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
   );
 
   // Group FAQs by category
   const faqsByCategory = filteredFAQs.reduce((acc, faq) => {
-    if (!acc[faq.category]) {
-      acc[faq.category] = [];
+    const currentLanguage = language.language;
+    const category = currentLanguage === "pt" ? faq.category_pt || faq.category : faq.category;
+    
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[faq.category].push(faq);
+    acc[category].push(faq);
     return acc;
   }, {} as Record<string, typeof mockFAQs>);
 
@@ -73,9 +84,7 @@ export default function FAQPage() {
           </h1>
         </div>
         <p className="text-gray-600 mt-2">
-          {language.language === "en"
-            ? "Find answers to common questions about the sustainability data system."
-            : "Encontre respostas para perguntas comuns sobre o sistema de dados de sustentabilidade."}
+          {language.t("faq.subtitle")}
         </p>
       </div>
 
@@ -85,9 +94,7 @@ export default function FAQPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={
-                language.language === "en" ? "Search FAQ..." : "Buscar FAQ..."
-              }
+              placeholder={language.t("faq.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -116,18 +123,24 @@ export default function FAQPage() {
               </CardHeader>
               <CardContent>
                 <Accordion type="single" collapsible className="w-full">
-                  {faqs.map((faq) => (
-                    <AccordionItem key={faq.id} value={faq.id}>
-                      <AccordionTrigger className="text-left">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="text-gray-600 leading-relaxed">
-                          {faq.answer}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
+                  {faqs.map((faq) => {
+                    const currentLanguage = language.language;
+                    const question = currentLanguage === "pt" ? faq.question_pt || faq.question : faq.question;
+                    const answer = currentLanguage === "pt" ? faq.answer_pt || faq.answer : faq.answer;
+                    
+                    return (
+                      <AccordionItem key={faq.id} value={faq.id}>
+                        <AccordionTrigger className="text-left">
+                          {question}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="text-gray-600 leading-relaxed">
+                            {answer}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
                 </Accordion>
               </CardContent>
             </Card>
