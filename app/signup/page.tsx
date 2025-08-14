@@ -187,7 +187,9 @@ export default function SignupPage() {
         }
 
         setSuccess(
-          `${language.t("signup.accountCreated")} Please check your email to verify your account.`
+          `${language.t(
+            "signup.accountCreated"
+          )} Please check your email to verify your account.`
         );
 
         // Redirect to login after a short delay
@@ -220,7 +222,20 @@ export default function SignupPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-8 bg-white relative">
+        {/* Language Switcher */}
+        <div className="absolute top-8 right-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => language.toggleLanguage()}
+            className="flex items-center gap-2 text-sm"
+          >
+            <span className="text-lg">🌐</span>
+            {language.language === "en" ? "PT" : "EN"}
+          </Button>
+        </div>
+        
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <Link
@@ -233,9 +248,7 @@ export default function SignupPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               {language.t("signup.title")}
             </h2>
-            <p className="text-gray-600">
-              {language.t("login.dashboardDesc")}
-            </p>
+            <p className="text-gray-600">{language.t("login.dashboardDesc")}</p>
           </div>
 
           <div className="space-y-6">
@@ -314,14 +327,18 @@ export default function SignupPage() {
                       >
                         <FormControl>
                           <SelectTrigger className="h-12 border-2 border-gray-200 rounded-lg">
-                            <SelectValue placeholder={language.t("signup.selectRole")} />
+                            <SelectValue
+                              placeholder={language.t("signup.selectRole")}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="department_head">
                             {language.t("signup.departmentHead")}
                           </SelectItem>
-                          <SelectItem value="admin">{language.t("signup.admin")}</SelectItem>
+                          <SelectItem value="admin">
+                            {language.t("signup.admin")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -423,7 +440,9 @@ export default function SignupPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{language.t("signup.confirmPassword")}</FormLabel>
+                      <FormLabel>
+                        {language.t("signup.confirmPassword")}
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input

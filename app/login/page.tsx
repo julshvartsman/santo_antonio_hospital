@@ -97,10 +97,25 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-8 bg-white relative">
+        {/* Language Switcher */}
+        <div className="absolute top-8 right-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => language.toggleLanguage()}
+            className="flex items-center gap-2 text-sm"
+          >
+            <span className="text-lg">🌐</span>
+            {language.language === "en" ? "PT" : "EN"}
+          </Button>
+        </div>
+        
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{language.t("login.title")}</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {language.t("login.title")}
+            </h2>
             <p className="text-gray-600">
               {language.t("login.enterCredentials")}
             </p>
@@ -137,7 +152,9 @@ export default function LoginPage() {
                           </div>
                           <Input
                             type="email"
-                            placeholder={language.t("login.email").toUpperCase()}
+                            placeholder={language
+                              .t("login.email")
+                              .toUpperCase()}
                             {...field}
                             className="h-14 pl-12 border-2 border-gray-200 rounded-lg text-sm font-medium placeholder:text-gray-400"
                           />
@@ -167,7 +184,9 @@ export default function LoginPage() {
                           </div>
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder={language.t("login.password").toUpperCase()}
+                            placeholder={language
+                              .t("login.password")
+                              .toUpperCase()}
                             {...field}
                             className="h-14 pl-12 pr-12 border-2 border-gray-200 rounded-lg text-sm font-medium placeholder:text-gray-400"
                           />
