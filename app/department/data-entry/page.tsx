@@ -386,11 +386,15 @@ export default function DepartmentDataEntry() {
                     <span className="text-sm">
                       {(() => {
                         const now = new Date();
-                        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 15);
-                        return nextMonth.toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
+                        const nextMonth = new Date(
+                          now.getFullYear(),
+                          now.getMonth() + 1,
+                          15
+                        );
+                        return nextMonth.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
                         });
                       })()}
                     </span>
@@ -400,19 +404,34 @@ export default function DepartmentDataEntry() {
                     <span className="text-sm text-orange-600 font-medium">
                       {(() => {
                         const now = new Date();
-                        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 15);
-                        const daysLeft = Math.ceil((nextMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                        const nextMonth = new Date(
+                          now.getFullYear(),
+                          now.getMonth() + 1,
+                          15
+                        );
+                        const daysLeft = Math.ceil(
+                          (nextMonth.getTime() - now.getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        );
                         return daysLeft;
                       })()}
                     </span>
                   </div>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="w-full"
                     onClick={() => {
                       const now = new Date();
-                      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-                      const formId = `${user?.hospital_id}-${(nextMonth.getMonth() + 1).toString().padStart(2, '0')}-${nextMonth.getFullYear()}`;
+                      const nextMonth = new Date(
+                        now.getFullYear(),
+                        now.getMonth() + 1,
+                        1
+                      );
+                      const formId = `${user?.hospital_id}-${(
+                        nextMonth.getMonth() + 1
+                      )
+                        .toString()
+                        .padStart(2, "0")}-${nextMonth.getFullYear()}`;
                       router.push(`/department/data-entry/${formId}`);
                     }}
                   >
@@ -423,35 +442,7 @@ export default function DepartmentDataEntry() {
             </Card>
           </div>
 
-          {/* Export Data */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Export</CardTitle>
-              <CardContent className="pt-0">
-                Export your historical data for analysis
-              </CardContent>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={exportToCSV}
-                  className="flex items-center space-x-2"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>Export CSV</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={refreshEntries}
-                  className="flex items-center space-x-2"
-                >
-                  <Activity className="h-4 w-4" />
-                  <span>Refresh Data</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
         </TabsContent>
       </Tabs>
     </div>

@@ -259,8 +259,57 @@ export default function DepartmentDashboard() {
         </CardContent>
       </Card>
 
+      {/* CO2 Emissions Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>CO₂ Emissions Trend</CardTitle>
+          <CardDescription>
+            Your hospital's CO₂ emissions over the past year
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Sparkline data={data.historical_entries.map((entry) => entry.co2_emissions || 0)} />
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-sm text-gray-500">
+                  {language.t("common.current")}
+                </div>
+                <div className="text-lg font-semibold">
+                  {data.current_month_entry?.co2_emissions?.toLocaleString() || "0"}{" "}
+                  kg CO₂e
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">
+                  {language.t("common.average")}
+                </div>
+                <div className="text-lg font-semibold">
+                  {Math.round(
+                    data.historical_entries
+                      .map((entry) => entry.co2_emissions || 0)
+                      .reduce((a, b) => a + b, 0) /
+                      data.historical_entries.length || 0
+                  ).toLocaleString()}{" "}
+                  kg CO₂e
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">
+                  {language.t("common.peak")}
+                </div>
+                <div className="text-lg font-semibold">
+                  {Math.max(...data.historical_entries.map((entry) => entry.co2_emissions || 0), 0).toLocaleString()}{" "}
+                  kg CO₂e
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-gray-500">
@@ -293,6 +342,23 @@ export default function DepartmentDashboard() {
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {language.t("dept.dashboard.monthlyAverage")}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              CO₂ Emissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data.current_month_entry?.co2_emissions?.toLocaleString() || "0"}{" "}
+              kg CO₂e
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Current month emissions
             </p>
           </CardContent>
         </Card>
