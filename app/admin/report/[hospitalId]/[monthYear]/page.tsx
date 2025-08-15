@@ -741,6 +741,142 @@ export default function HospitalReportPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Fuel Type */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-indigo-600">Fuel Type</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="fuel_type">Fuel Type</Label>
+                  <select
+                    id="fuel_type"
+                    value={editableData.fuel_type || ""}
+                    onChange={(e) =>
+                      setEditableData({
+                        ...editableData,
+                        fuel_type: e.target.value || null,
+                      })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select fuel type</option>
+                    <option value="gas">Gas</option>
+                    <option value="diesel">Diesel</option>
+                  </select>
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-indigo-600">
+                    {reportData.fuel_type || "Not specified"}
+                  </div>
+                  <p className="text-sm text-gray-500">Vehicle fuel type</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Kilometers Travelled */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-emerald-600">Kilometers Travelled</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="kilometers_travelled">km</Label>
+                  <Input
+                    id="kilometers_travelled"
+                    type="number"
+                    value={editableData.kilometers_travelled || 0}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "kilometers_travelled",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-emerald-600">
+                    {(reportData.kilometers_travelled || 0).toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">km</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* License Plate */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-cyan-600">License Plate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="license_plate">License Plate</Label>
+                  <Input
+                    id="license_plate"
+                    type="text"
+                    value={editableData.license_plate || ""}
+                    onChange={(e) =>
+                      setEditableData({
+                        ...editableData,
+                        license_plate: e.target.value || null,
+                      })
+                    }
+                    className="text-lg"
+                    placeholder="Enter license plate"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-cyan-600">
+                    {reportData.license_plate || "Not specified"}
+                  </div>
+                  <p className="text-sm text-gray-500">Vehicle license plate</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Renewable Energy Created */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-green-600">Renewable Energy Created</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditing && editableData ? (
+                <div className="space-y-2">
+                  <Label htmlFor="renewable_energy_created">kWh</Label>
+                  <Input
+                    id="renewable_energy_created"
+                    type="number"
+                    value={editableData.renewable_energy_created || 0}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "renewable_energy_created",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
+                    className="text-lg"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-green-600">
+                    {(reportData.renewable_energy_created || 0).toLocaleString()}
+                  </div>
+                  <p className="text-sm text-gray-500">kWh</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Summary */}
@@ -787,6 +923,24 @@ export default function HospitalReportPage() {
                 <p>
                   <strong>CO₂ Emissions:</strong>{" "}
                   {reportData.co2_emissions.toLocaleString()} kg CO₂e
+                </p>
+                <p>
+                  <strong>Fuel Type:</strong>{" "}
+                  {reportData.fuel_type || "Not specified"}
+                </p>
+                <p>
+                  <strong>Kilometers Travelled:</strong>{" "}
+                  {(reportData.kilometers_travelled || 0).toLocaleString()} km
+                </p>
+              </div>
+              <div>
+                <p>
+                  <strong>License Plate:</strong>{" "}
+                  {reportData.license_plate || "Not specified"}
+                </p>
+                <p>
+                  <strong>Renewable Energy Created:</strong>{" "}
+                  {(reportData.renewable_energy_created || 0).toLocaleString()} kWh
                 </p>
                 <p>
                   <strong>Status:</strong>{" "}

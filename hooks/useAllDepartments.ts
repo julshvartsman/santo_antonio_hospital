@@ -182,7 +182,10 @@ export function useAllDepartments() {
       console.log("🔍 Debug - Entries data fetched:", entriesData);
       console.log("🔍 Debug - Current month:", currentMonth);
       console.log("🔍 Debug - Previous month:", previousMonth);
-      console.log("🔍 Debug - Number of entries found:", entriesData?.length || 0);
+      console.log(
+        "🔍 Debug - Number of entries found:",
+        entriesData?.length || 0
+      );
 
       // Process data for each hospital
       const processedHospitals: HospitalWithMetrics[] = hospitalsData.map(
@@ -314,8 +317,12 @@ export function useAllDepartments() {
 
       // Debug: Log processed hospitals data
       console.log("🔍 Debug - Processed hospitals:", processedHospitals);
+      console.log("🔍 Debug - Sample hospital data:", processedHospitals[0]);
+      console.log("🔍 Debug - Sample current_month_totals:", processedHospitals[0]?.current_month_totals);
+      console.log("🔍 Debug - Sample previous_month_totals:", processedHospitals[0]?.previous_month_totals);
 
       // Calculate cumulative metrics
+      console.log("🔍 Debug - Starting cumulative metrics calculation");
       const cumulative: CumulativeMetrics = {
         total_kwh: processedHospitals.reduce(
           (sum, h) => sum + h.current_month_totals.kwh_usage,
@@ -431,6 +438,15 @@ export function useAllDepartments() {
           renewable_energy: 0,
         },
       };
+
+      console.log("🔍 Debug - Cumulative metrics calculated:", cumulative);
+      console.log("🔍 Debug - New fields totals:", {
+        total_kilometers_travelled: cumulative.total_kilometers_travelled,
+        total_renewable_energy_created: cumulative.total_renewable_energy_created,
+        total_gas_count: cumulative.total_gas_count,
+        total_diesel_count: cumulative.total_diesel_count,
+        total_license_plate_count: cumulative.total_license_plate_count,
+      });
 
       // Calculate overall percentage changes
       cumulative.overall_changes = {
