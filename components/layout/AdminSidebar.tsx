@@ -38,8 +38,14 @@ export default function AdminSidebar() {
   const { language } = useApp();
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/login");
+    console.log("🔍 DEBUG: handleLogout called");
+    try {
+      await logout();
+      console.log("🔍 DEBUG: logout successful, redirecting to login");
+      router.push("/login");
+    } catch (error) {
+      console.error("🔍 DEBUG: handleLogout error:", error);
+    }
   };
 
   return (

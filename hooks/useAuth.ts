@@ -189,9 +189,17 @@ class AuthService {
   }
 
   static async logout(): Promise<void> {
-    await supabase.auth.signOut();
-    removeFromStorage("user");
-    removeFromStorage("user_cache_time");
+    console.log("🔍 DEBUG: AuthService.logout called");
+    try {
+      await supabase.auth.signOut();
+      console.log("🔍 DEBUG: Supabase signOut successful");
+      removeFromStorage("user");
+      removeFromStorage("user_cache_time");
+      console.log("🔍 DEBUG: Local storage cleared");
+    } catch (error) {
+      console.error("🔍 DEBUG: Logout error:", error);
+      throw error;
+    }
   }
 
   static async getCurrentUser(): Promise<User | null> {
