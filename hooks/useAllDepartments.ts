@@ -143,6 +143,7 @@ export function useAllDepartments() {
 
   const fetchAllDepartmentsData = useCallback(async () => {
     try {
+      console.log("🚀 DEBUG: fetchAllDepartmentsData called");
       setLoading(true);
       setError(null);
 
@@ -181,6 +182,7 @@ export function useAllDepartments() {
       console.log("🔍 Debug - Entries data fetched:", entriesData);
       console.log("🔍 Debug - Current month:", currentMonth);
       console.log("🔍 Debug - Previous month:", previousMonth);
+      console.log("🔍 Debug - Number of entries found:", entriesData?.length || 0);
 
       // Process data for each hospital
       const processedHospitals: HospitalWithMetrics[] = hospitalsData.map(
