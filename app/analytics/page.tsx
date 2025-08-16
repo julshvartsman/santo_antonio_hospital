@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
 
   const categoryEmissions = [
     {
-      category: "Energy",
+      category: language.t("metrics.energy"),
       emissions: 1.2,
       percentage: 45,
       trend: "down",
@@ -109,7 +109,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Energy Efficiency
+              {language.t("metrics.energyEfficiency")}
             </CardTitle>
             <Zap className="h-4 w-4 text-yellow-600" />
           </CardHeader>
@@ -246,8 +246,8 @@ export default function AnalyticsPage() {
               >
                 <div className="font-medium">{trend.month}</div>
                 <div className="text-sm">
-                  <div className="font-medium">{trend.energy} kWh</div>
-                  <div className="text-gray-500">Energy</div>
+                                  <div className="font-medium">{trend.energy} kWh</div>
+                <div className="text-gray-500">{language.t("metrics.energy")}</div>
                 </div>
                 <div className="text-sm">
                   <div className="font-medium">{trend.water} m³</div>

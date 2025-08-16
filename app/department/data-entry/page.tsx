@@ -110,7 +110,7 @@ export default function DepartmentDataEntry() {
       ["Monthly Sustainability Report", currentMonth],
       [""],
       ["Metric", "Value", "Unit"],
-      ["Energy Usage", entriesData.current_month_entry.kwh_usage || 0, "kWh"],
+      [language.t("metrics.energyUsageKwh"), entriesData.current_month_entry.kwh_usage || 0, "kWh"],
       [
         "Water Usage",
         entriesData.current_month_entry.water_usage_m3 || 0,
@@ -126,30 +126,30 @@ export default function DepartmentDataEntry() {
         "kg CO₂e",
       ],
       [
-        "Kilometers (Gas)",
-        entriesData.current_month_entry.km_travelled_gas || 0,
-        "km",
-      ],
-      [
-        "Kilometers (Diesel)",
-        entriesData.current_month_entry.km_travelled_diesel || 0,
-        "km",
-      ],
-      [
-        "Kilometers (Gasoline)",
-        entriesData.current_month_entry.km_travelled_gasoline || 0,
-        "km",
-      ],
-      [
-        "License Plate",
-        entriesData.current_month_entry.license_plate || "N/A",
-        "",
-      ],
-      [
-        "Renewable Energy Created",
-        entriesData.current_month_entry.renewable_energy_created || 0,
-        "kWh",
-      ],
+              language.t("metrics.kilometersGasKm"),
+      entriesData.current_month_entry.km_travelled_gas || 0,
+      "km",
+    ],
+    [
+      language.t("metrics.kilometersDieselKm"),
+      entriesData.current_month_entry.km_travelled_diesel || 0,
+      "km",
+    ],
+    [
+      language.t("metrics.kilometersGasolineKm"),
+      entriesData.current_month_entry.km_travelled_gasoline || 0,
+      "km",
+    ],
+    [
+      language.t("metrics.licensePlate"),
+      entriesData.current_month_entry.license_plate || "N/A",
+      "",
+    ],
+    [
+      language.t("metrics.renewableEnergyCreatedKwh"),
+      entriesData.current_month_entry.renewable_energy_created || 0,
+      "kWh",
+    ],
       [""],
       ["Report Generated", new Date().toLocaleDateString()],
       ["Submitted", entriesData.current_month_entry.submitted ? "Yes" : "No"],
@@ -387,9 +387,9 @@ export default function DepartmentDataEntry() {
           {/* Energy Trend Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>12-Month Energy Trend</CardTitle>
+              <CardTitle>{language.t("metrics.energyTrendTitle")}</CardTitle>
               <CardContent className="pt-0">
-                Your hospital's energy usage over the past year
+                {language.t("metrics.energyTrendDescription")}
               </CardContent>
             </CardHeader>
             <CardContent>
@@ -534,7 +534,7 @@ export default function DepartmentDataEntry() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Energy Trend</span>
+                    <span className="text-sm text-gray-600">{language.t("metrics.energyTrend")}</span>
                     <div className="flex items-center text-green-600">
                       <TrendingDown className="h-4 w-4 mr-1" />
                       <span className="text-sm">-12%</span>

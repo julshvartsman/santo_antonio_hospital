@@ -59,7 +59,7 @@ export default function DepartmentExport() {
                   checked={selectedData.includes("energy")}
                   onCheckedChange={() => handleDataChange("energy")}
                 />
-                <Label htmlFor="energy">Energy Usage Data</Label>
+                <Label htmlFor="energy">{language.t("metrics.energyUsageData")}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox

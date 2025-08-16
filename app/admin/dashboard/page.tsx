@@ -651,7 +651,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-emerald-600">
-                      Kilometers Travelled
+                      {language.t("metrics.kilometersTravelled")}
                     </p>
                     <p className="text-2xl font-bold text-emerald-900">
                       {Math.round(
@@ -676,7 +676,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-green-600">
-                      Renewable Energy Created
+                      {language.t("metrics.renewableEnergyCreated")}
                     </p>
                     <p className="text-2xl font-bold text-green-900">
                       {Math.round(
@@ -702,7 +702,7 @@ export default function AdminDashboard() {
               <div className="bg-slate-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">Kilometers by Fuel</p>
+                    <p className="text-sm text-slate-600">{language.t("metrics.kilometersByFuel")}</p>
                     <p className="text-2xl font-bold text-slate-900">
                       Gas:{" "}
                       {Math.round(
@@ -725,7 +725,7 @@ export default function AdminDashboard() {
                       km
                     </p>
                     <p className="text-xs text-slate-600/70">
-                      Sum across all departments for this month
+                      {language.t("metrics.sumAcrossDepartments")}
                     </p>
                   </div>
                   <Activity className="h-8 w-8 text-slate-600" />
@@ -737,13 +737,13 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-zinc-600">
-                      License Plates Recorded
+                      {language.t("metrics.licensePlatesRecorded")}
                     </p>
                     <p className="text-2xl font-bold text-zinc-900">
                       {cumulativeMetrics.total_license_plate_count}
                     </p>
                     <p className="text-xs text-zinc-600/70">
-                      Total entries with plate numbers this month
+                      {language.t("metrics.totalEntriesWithPlates")}
                     </p>
                   </div>
                   <Activity className="h-8 w-8 text-zinc-600" />
@@ -825,10 +825,10 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-sm text-green-600 mt-1">%</div>
                   <div className="text-xs text-gray-600 mt-2">
-                    Renewable Energy Ratio
+                    {language.t("metrics.renewableEnergyRatio")}
                   </div>
                   <div className="text-xs text-gray-600 mt-1">
-                    Renewable vs Total Energy
+                    {language.t("metrics.renewableVsTotal")}
                   </div>
                 </div>
               </div>

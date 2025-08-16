@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { FormMetric } from "@/types/forms";
 import { Save, Send, AlertTriangle, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 // Define the 7 required sustainability metrics
 const SUSTAINABILITY_METRICS: FormMetric[] = [
@@ -68,47 +69,47 @@ const SUSTAINABILITY_METRICS: FormMetric[] = [
   },
   {
     key: "km_travelled_gas",
-    label: "Kilometers Travelled (Gas)",
+    label: t("metrics.kilometersGasKm"),
     unit: "km",
     type: "number",
     required: false,
     min: 0,
-    description: "Kilometers travelled by vehicles using gas",
+    description: t("metrics.kilometersGas"),
   },
   {
     key: "km_travelled_diesel",
-    label: "Kilometers Travelled (Diesel)",
+    label: t("metrics.kilometersDieselKm"),
     unit: "km",
     type: "number",
     required: false,
     min: 0,
-    description: "Kilometers travelled by vehicles using diesel",
+    description: t("metrics.kilometersDiesel"),
   },
   {
     key: "km_travelled_gasoline",
-    label: "Kilometers Travelled (Gasoline)",
+    label: t("metrics.kilometersGasolineKm"),
     unit: "km",
     type: "number",
     required: false,
     min: 0,
-    description: "Kilometers travelled by vehicles using gasoline",
+    description: t("metrics.kilometersGasoline"),
   },
   {
     key: "license_plate",
-    label: "License Plate Number",
+    label: t("metrics.licensePlateNumber"),
     unit: "",
     type: "text",
     required: false,
-    description: "Vehicle license plate identifier",
+    description: t("metrics.vehicleIdentifier"),
   },
   {
     key: "renewable_energy_created",
-    label: "Renewable Energy Created",
+    label: t("metrics.renewableEnergyCreated"),
     unit: "kWh",
     type: "number",
     required: false,
     min: 0,
-    description: "Amount of renewable energy generated on-site",
+    description: t("metrics.renewableEnergyOnSite"),
   },
 ];
 
@@ -137,6 +138,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   loading = false,
   saving = false,
 }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
