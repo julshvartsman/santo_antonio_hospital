@@ -170,8 +170,9 @@ export function useMyEntries() {
     type3: number;
     type4: number;
     co2_emissions?: number;
-    fuel_type?: string;
-    kilometers_travelled?: number;
+    km_travelled_gas?: number;
+    km_travelled_diesel?: number;
+    km_travelled_gasoline?: number;
     license_plate?: string;
     renewable_energy_created?: number;
   }) => {
@@ -202,8 +203,9 @@ export function useMyEntries() {
         type3: formData.type3,
         type4: formData.type4,
         co2_emissions,
-        fuel_type: formData.fuel_type || null,
-        kilometers_travelled: formData.kilometers_travelled || 0,
+        km_travelled_gas: formData.km_travelled_gas || 0,
+        km_travelled_diesel: formData.km_travelled_diesel || 0,
+        km_travelled_gasoline: formData.km_travelled_gasoline || 0,
         license_plate: formData.license_plate || null,
         renewable_energy_created: formData.renewable_energy_created || 0,
         submitted: true,

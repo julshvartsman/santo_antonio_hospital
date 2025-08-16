@@ -125,10 +125,19 @@ export default function DepartmentDataEntry() {
         entriesData.current_month_entry.co2_emissions || 0,
         "kg CO₂e",
       ],
-      ["Fuel Type", entriesData.current_month_entry.fuel_type || "N/A", ""],
       [
-        "Kilometers Travelled",
-        entriesData.current_month_entry.kilometers_travelled || 0,
+        "Kilometers (Gas)",
+        entriesData.current_month_entry.km_travelled_gas || 0,
+        "km",
+      ],
+      [
+        "Kilometers (Diesel)",
+        entriesData.current_month_entry.km_travelled_diesel || 0,
+        "km",
+      ],
+      [
+        "Kilometers (Gasoline)",
+        entriesData.current_month_entry.km_travelled_gasoline || 0,
         "km",
       ],
       [

@@ -74,8 +74,9 @@ export interface Entry {
   type3: number;
   type4: number;
   co2_emissions: number;
-  fuel_type?: string;
-  kilometers_travelled?: number;
+  km_travelled_gas?: number;
+  km_travelled_diesel?: number;
+  km_travelled_gasoline?: number;
   license_plate?: string;
   renewable_energy_created?: number;
   submitted: boolean;

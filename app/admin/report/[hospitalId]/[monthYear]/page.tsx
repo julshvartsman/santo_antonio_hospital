@@ -33,8 +33,9 @@ interface ReportData {
   waste_type3: number;
   waste_type4: number;
   co2_emissions: number;
-  fuel_type?: string;
-  kilometers_travelled?: number;
+  km_travelled_gas?: number;
+  km_travelled_diesel?: number;
+  km_travelled_gasoline?: number;
   license_plate?: string;
   renewable_energy_created?: number;
   submitted: boolean;
@@ -193,8 +194,9 @@ export default function HospitalReportPage() {
             waste_type3: 0,
             waste_type4: 0,
             co2_emissions: 0,
-            fuel_type: "",
-            kilometers_travelled: 0,
+            km_travelled_gas: 0,
+            km_travelled_diesel: 0,
+            km_travelled_gasoline: 0,
             license_plate: "",
             renewable_energy_created: 0,
             submitted: formData.submitted,
@@ -222,8 +224,9 @@ export default function HospitalReportPage() {
           waste_type3: entriesData.type3 || 0,
           waste_type4: entriesData.type4 || 0,
           co2_emissions: entriesData.co2_emissions || 0,
-          fuel_type: entriesData.fuel_type || "",
-          kilometers_travelled: entriesData.kilometers_travelled || 0,
+          km_travelled_gas: entriesData.km_travelled_gas || 0,
+          km_travelled_diesel: entriesData.km_travelled_diesel || 0,
+          km_travelled_gasoline: entriesData.km_travelled_gasoline || 0,
           license_plate: entriesData.license_plate || "",
           renewable_energy_created: entriesData.renewable_energy_created || 0,
           submitted: entriesData.submitted || false,
@@ -260,6 +263,9 @@ export default function HospitalReportPage() {
       `Type 3 Waste,${reportData.waste_type3},kg`,
       `Type 4 Waste,${reportData.waste_type4},kg`,
       `CO₂ Emissions,${reportData.co2_emissions},kg CO₂e`,
+      `Km (Gas),${reportData.km_travelled_gas || 0},km`,
+      `Km (Diesel),${reportData.km_travelled_diesel || 0},km`,
+      `Km (Gasoline),${reportData.km_travelled_gasoline || 0},km`,
       "",
       `Submission Status,${reportData.submitted ? "Submitted" : "Pending"}`,
       reportData.submitted_at
@@ -315,8 +321,9 @@ export default function HospitalReportPage() {
         type3: editableData.waste_type3,
         type4: editableData.waste_type4,
         co2_emissions: editableData.co2_emissions,
-        fuel_type: editableData.fuel_type,
-        kilometers_travelled: editableData.kilometers_travelled,
+        km_travelled_gas: editableData.km_travelled_gas || 0,
+        km_travelled_diesel: editableData.km_travelled_diesel || 0,
+        km_travelled_gasoline: editableData.km_travelled_gasoline || 0,
         license_plate: editableData.license_plate,
         renewable_energy_created: editableData.renewable_energy_created,
         submitted: editableData.submitted,
@@ -340,7 +347,10 @@ export default function HospitalReportPage() {
     }
   };
 
-  const handleInputChange = (field: keyof ReportData, value: number) => {
+  const handleInputChange = (
+    field: keyof ReportData,
+    value: number | string
+  ) => {
     if (editableData) {
       setEditableData({
         ...editableData,
@@ -742,70 +752,77 @@ export default function HospitalReportPage() {
             </CardContent>
           </Card>
 
-          {/* Fuel Type */}
+          {/* Kilometers by Fuel */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-indigo-600">Fuel Type</CardTitle>
+              <CardTitle className="text-indigo-600">
+                Kilometers by Fuel
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing && editableData ? (
-                <div className="space-y-2">
-                  <Label htmlFor="fuel_type">Fuel Type</Label>
-                  <select
-                    id="fuel_type"
-                    value={editableData.fuel_type || ""}
-                    onChange={(e) =>
-                      setEditableData({
-                        ...editableData,
-                        fuel_type: e.target.value || null,
-                      })
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="">Select fuel type</option>
-                    <option value="gas">Gas</option>
-                    <option value="diesel">Diesel</option>
-                  </select>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="km_travelled_gas">Gas (km)</Label>
+                    <Input
+                      id="km_travelled_gas"
+                      type="number"
+                      value={editableData.km_travelled_gas || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "km_travelled_gas",
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                      className="text-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="km_travelled_diesel">Diesel (km)</Label>
+                    <Input
+                      id="km_travelled_diesel"
+                      type="number"
+                      value={editableData.km_travelled_diesel || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "km_travelled_diesel",
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                      className="text-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="km_travelled_gasoline">Gasoline (km)</Label>
+                    <Input
+                      id="km_travelled_gasoline"
+                      type="number"
+                      value={editableData.km_travelled_gasoline || 0}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "km_travelled_gasoline",
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                      className="text-lg"
+                    />
+                  </div>
                 </div>
               ) : (
                 <>
                   <div className="text-3xl font-bold text-indigo-600">
-                    {reportData.fuel_type || "Not specified"}
+                    Gas: {(reportData.km_travelled_gas || 0).toLocaleString()}{" "}
+                    km
                   </div>
-                  <p className="text-sm text-gray-500">Vehicle fuel type</p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Kilometers Travelled */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-emerald-600">Kilometers Travelled</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isEditing && editableData ? (
-                <div className="space-y-2">
-                  <Label htmlFor="kilometers_travelled">km</Label>
-                  <Input
-                    id="kilometers_travelled"
-                    type="number"
-                    value={editableData.kilometers_travelled || 0}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "kilometers_travelled",
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
-                    className="text-lg"
-                  />
-                </div>
-              ) : (
-                <>
-                  <div className="text-3xl font-bold text-emerald-600">
-                    {(reportData.kilometers_travelled || 0).toLocaleString()}
+                  <div className="text-3xl font-bold text-indigo-600">
+                    Diesel:{" "}
+                    {(reportData.km_travelled_diesel || 0).toLocaleString()} km
                   </div>
-                  <p className="text-sm text-gray-500">km</p>
+                  <div className="text-3xl font-bold text-indigo-600">
+                    Gasoline:{" "}
+                    {(reportData.km_travelled_gasoline || 0).toLocaleString()}{" "}
+                    km
+                  </div>
                 </>
               )}
             </CardContent>
@@ -827,7 +844,7 @@ export default function HospitalReportPage() {
                     onChange={(e) =>
                       setEditableData({
                         ...editableData,
-                        license_plate: e.target.value || null,
+                        license_plate: e.target.value || undefined,
                       })
                     }
                     className="text-lg"
@@ -848,7 +865,9 @@ export default function HospitalReportPage() {
           {/* Renewable Energy Created */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-green-600">Renewable Energy Created</CardTitle>
+              <CardTitle className="text-green-600">
+                Renewable Energy Created
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing && editableData ? (
@@ -870,7 +889,9 @@ export default function HospitalReportPage() {
               ) : (
                 <>
                   <div className="text-3xl font-bold text-green-600">
-                    {(reportData.renewable_energy_created || 0).toLocaleString()}
+                    {(
+                      reportData.renewable_energy_created || 0
+                    ).toLocaleString()}
                   </div>
                   <p className="text-sm text-gray-500">kWh</p>
                 </>
@@ -925,12 +946,16 @@ export default function HospitalReportPage() {
                   {reportData.co2_emissions.toLocaleString()} kg CO₂e
                 </p>
                 <p>
-                  <strong>Fuel Type:</strong>{" "}
-                  {reportData.fuel_type || "Not specified"}
+                  <strong>Km (Gas):</strong>{" "}
+                  {(reportData.km_travelled_gas || 0).toLocaleString()} km
                 </p>
                 <p>
-                  <strong>Kilometers Travelled:</strong>{" "}
-                  {(reportData.kilometers_travelled || 0).toLocaleString()} km
+                  <strong>Km (Diesel):</strong>{" "}
+                  {(reportData.km_travelled_diesel || 0).toLocaleString()} km
+                </p>
+                <p>
+                  <strong>Km (Gasoline):</strong>{" "}
+                  {(reportData.km_travelled_gasoline || 0).toLocaleString()} km
                 </p>
               </div>
               <div>
@@ -940,7 +965,8 @@ export default function HospitalReportPage() {
                 </p>
                 <p>
                   <strong>Renewable Energy Created:</strong>{" "}
-                  {(reportData.renewable_energy_created || 0).toLocaleString()} kWh
+                  {(reportData.renewable_energy_created || 0).toLocaleString()}{" "}
+                  kWh
                 </p>
                 <p>
                   <strong>Status:</strong>{" "}

@@ -108,8 +108,9 @@ export const useFormById = (formId: string) => {
               type3: entryData.type3 || 0,
               type4: entryData.type4 || 0,
               co2_emissions: entryData.co2_emissions || 0,
-              fuel_type: entryData.fuel_type || "",
-              kilometers_travelled: entryData.kilometers_travelled || 0,
+              km_travelled_gas: entryData.km_travelled_gas || 0,
+              km_travelled_diesel: entryData.km_travelled_diesel || 0,
+              km_travelled_gasoline: entryData.km_travelled_gasoline || 0,
               license_plate: entryData.license_plate || "",
               renewable_energy_created: entryData.renewable_energy_created || 0,
             }
@@ -138,8 +139,9 @@ export const useFormById = (formId: string) => {
       type3: Number(data.type3) || 0,
       type4: Number(data.type4) || 0,
       co2_emissions: Number(data.co2_emissions) || 0,
-      fuel_type: typeof data.fuel_type === "string" ? data.fuel_type : "",
-      kilometers_travelled: Number(data.kilometers_travelled) || 0,
+      km_travelled_gas: Number(data.km_travelled_gas) || 0,
+      km_travelled_diesel: Number(data.km_travelled_diesel) || 0,
+      km_travelled_gasoline: Number(data.km_travelled_gasoline) || 0,
       license_plate:
         typeof data.license_plate === "string" ? data.license_plate : "",
       renewable_energy_created: Number(data.renewable_energy_created) || 0,

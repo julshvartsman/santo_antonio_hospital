@@ -698,17 +698,34 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Fuel Type Mix */}
+              {/* Kilometers by Fuel */}
               <div className="bg-slate-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">Fuel Type Mix</p>
+                    <p className="text-sm text-slate-600">Kilometers by Fuel</p>
                     <p className="text-2xl font-bold text-slate-900">
-                      Gas: {cumulativeMetrics.total_gas_count} / Diesel:{" "}
-                      {cumulativeMetrics.total_diesel_count}
+                      Gas:{" "}
+                      {Math.round(
+                        cumulativeMetrics.total_km_gas || 0
+                      ).toLocaleString()}{" "}
+                      km
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900">
+                      Diesel:{" "}
+                      {Math.round(
+                        cumulativeMetrics.total_km_diesel || 0
+                      ).toLocaleString()}{" "}
+                      km
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900">
+                      Gasoline:{" "}
+                      {Math.round(
+                        cumulativeMetrics.total_km_gasoline || 0
+                      ).toLocaleString()}{" "}
+                      km
                     </p>
                     <p className="text-xs text-slate-600/70">
-                      Vehicle entries categorized by fuel type this month
+                      Sum across all departments for this month
                     </p>
                   </div>
                   <Activity className="h-8 w-8 text-slate-600" />
