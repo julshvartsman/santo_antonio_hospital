@@ -13,7 +13,7 @@ export interface HospitalWithMetrics extends Hospital {
     waste_type3: number;
     waste_type4: number;
     co2_emissions: number;
-    kilometers_travelled?: number;
+    total_kilometers_travelled?: number; // Computed sum of the three fuel types
     km_travelled_gas?: number;
     km_travelled_diesel?: number;
     km_travelled_gasoline?: number;
@@ -28,7 +28,7 @@ export interface HospitalWithMetrics extends Hospital {
     waste_type3: number;
     waste_type4: number;
     co2_emissions: number;
-    kilometers_travelled?: number;
+    total_kilometers_travelled?: number; // Computed sum of the three fuel types
     km_travelled_gas?: number;
     km_travelled_diesel?: number;
     km_travelled_gasoline?: number;
@@ -218,7 +218,7 @@ export function useAllDepartments() {
             waste_type3: currentEntry?.type3 || 0,
             waste_type4: currentEntry?.type4 || 0,
             co2_emissions: currentEntry?.co2_emissions || 0,
-            kilometers_travelled:
+            total_kilometers_travelled:
               (currentEntry?.km_travelled_gas || 0) +
               (currentEntry?.km_travelled_diesel || 0) +
               (currentEntry?.km_travelled_gasoline || 0),
@@ -238,7 +238,7 @@ export function useAllDepartments() {
             waste_type3: previousEntry?.type3 || 0,
             waste_type4: previousEntry?.type4 || 0,
             co2_emissions: previousEntry?.co2_emissions || 0,
-            kilometers_travelled:
+            total_kilometers_travelled:
               (previousEntry?.km_travelled_gas || 0) +
               (previousEntry?.km_travelled_diesel || 0) +
               (previousEntry?.km_travelled_gasoline || 0),
@@ -273,10 +273,10 @@ export function useAllDepartments() {
                   100
                 : 0,
             kilometers:
-              (previous_month_totals.kilometers_travelled || 0) > 0
-                ? (((current_month_totals.kilometers_travelled || 0) -
-                    (previous_month_totals.kilometers_travelled || 0)) /
-                    (previous_month_totals.kilometers_travelled || 1)) *
+              (previous_month_totals.total_kilometers_travelled || 0) > 0
+                ? (((current_month_totals.total_kilometers_travelled || 0) -
+                    (previous_month_totals.total_kilometers_travelled || 0)) /
+                    (previous_month_totals.total_kilometers_travelled || 1)) *
                   100
                 : 0,
             renewable_energy:
@@ -375,7 +375,7 @@ export function useAllDepartments() {
           0
         ),
         total_kilometers_travelled: processedHospitals.reduce(
-          (sum, h) => sum + (h.current_month_totals.kilometers_travelled || 0),
+          (sum, h) => sum + (h.current_month_totals.total_kilometers_travelled || 0),
           0
         ),
         total_renewable_energy_created: processedHospitals.reduce(
@@ -428,7 +428,7 @@ export function useAllDepartments() {
           0
         ),
         previous_total_kilometers_travelled: processedHospitals.reduce(
-          (sum, h) => sum + (h.previous_month_totals.kilometers_travelled || 0),
+          (sum, h) => sum + (h.previous_month_totals.total_kilometers_travelled || 0),
           0
         ),
         previous_total_renewable_energy_created: processedHospitals.reduce(
