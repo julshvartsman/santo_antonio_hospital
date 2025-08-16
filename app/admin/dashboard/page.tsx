@@ -702,7 +702,9 @@ export default function AdminDashboard() {
               <div className="bg-slate-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-600">{language.t("metrics.kilometersByFuel")}</p>
+                    <p className="text-sm text-slate-600">
+                      {language.t("metrics.kilometersByFuel")}
+                    </p>
                     <p className="text-2xl font-bold text-slate-900">
                       Gas:{" "}
                       {Math.round(

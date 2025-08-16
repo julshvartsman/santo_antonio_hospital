@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Download, Calendar, FileText, BarChart3 } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function DepartmentExport() {
+  const { t } = useLanguage();
   const [selectedFormats, setSelectedFormats] = useState<string[]>(["csv"]);
   const [selectedData, setSelectedData] = useState<string[]>([
     "energy",
@@ -59,7 +61,7 @@ export default function DepartmentExport() {
                   checked={selectedData.includes("energy")}
                   onCheckedChange={() => handleDataChange("energy")}
                 />
-                <Label htmlFor="energy">{language.t("metrics.energyUsageData")}</Label>
+                <Label htmlFor="energy">{t("metrics.energyUsageData")}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
