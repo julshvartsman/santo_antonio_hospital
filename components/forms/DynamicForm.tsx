@@ -11,107 +11,7 @@ import { FormMetric } from "@/types/forms";
 import { Save, Send, AlertTriangle, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
-// Define the 7 required sustainability metrics
-const SUSTAINABILITY_METRICS: FormMetric[] = [
-  {
-    key: "kwh_usage",
-    label: "Electricity Usage",
-    unit: "kWh",
-    type: "number",
-    required: true,
-    min: 0,
-    description: "Total electricity consumption for the month",
-  },
-  {
-    key: "water_usage_m3",
-    label: "Water Usage",
-    unit: "m³",
-    type: "number",
-    required: true,
-    min: 0,
-    description: "Total water consumption for the month",
-  },
-  {
-    key: "type1",
-    label: "Type 1 Waste Residuals",
-    unit: "kg",
-    type: "number",
-    required: true,
-    min: 0,
-    description: "Type 1 waste residuals for the month",
-  },
-  {
-    key: "type2",
-    label: "Type 2 Waste Residuals",
-    unit: "kg",
-    type: "number",
-    required: true,
-    min: 0,
-    description: "Type 2 waste residuals for the month",
-  },
-  {
-    key: "type3",
-    label: "Type 3 Waste Residuals",
-    unit: "kg",
-    type: "number",
-    required: true,
-    min: 0,
-    description: "Type 3 waste residuals for the month",
-  },
-  {
-    key: "type4",
-    label: "Type 4 Waste Residuals",
-    unit: "kg",
-    type: "number",
-    required: true,
-    min: 0,
-    description: "Type 4 waste residuals for the month",
-  },
-  {
-    key: "km_travelled_gas",
-    label: t("metrics.kilometersGasKm"),
-    unit: "km",
-    type: "number",
-    required: false,
-    min: 0,
-    description: t("metrics.kilometersGas"),
-  },
-  {
-    key: "km_travelled_diesel",
-    label: t("metrics.kilometersDieselKm"),
-    unit: "km",
-    type: "number",
-    required: false,
-    min: 0,
-    description: t("metrics.kilometersDiesel"),
-  },
-  {
-    key: "km_travelled_gasoline",
-    label: t("metrics.kilometersGasolineKm"),
-    unit: "km",
-    type: "number",
-    required: false,
-    min: 0,
-    description: t("metrics.kilometersGasoline"),
-  },
-  {
-    key: "license_plate",
-    label: t("metrics.licensePlateNumber"),
-    unit: "",
-    type: "text",
-    required: false,
-    description: t("metrics.vehicleIdentifier"),
-  },
-  {
-    key: "renewable_energy_created",
-    label: t("metrics.renewableEnergyCreated"),
-    unit: "kWh",
-    type: "number",
-    required: false,
-    min: 0,
-    description: t("metrics.renewableEnergyOnSite"),
-  },
-];
+// Define the sustainability metrics (will be moved inside component)
 
 interface DynamicFormProps {
   formId: string;
@@ -142,6 +42,108 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Define the sustainability metrics inside component to access translations
+  const SUSTAINABILITY_METRICS: FormMetric[] = [
+    {
+      key: "kwh_usage",
+      label: "Electricity Usage",
+      unit: "kWh",
+      type: "number",
+      required: true,
+      min: 0,
+      description: "Total electricity consumption for the month",
+    },
+    {
+      key: "water_usage_m3",
+      label: "Water Usage",
+      unit: "m³",
+      type: "number",
+      required: true,
+      min: 0,
+      description: "Total water consumption for the month",
+    },
+    {
+      key: "type1",
+      label: "Type 1 Waste Residuals",
+      unit: "kg",
+      type: "number",
+      required: true,
+      min: 0,
+      description: "Type 1 waste residuals for the month",
+    },
+    {
+      key: "type2",
+      label: "Type 2 Waste Residuals",
+      unit: "kg",
+      type: "number",
+      required: true,
+      min: 0,
+      description: "Type 2 waste residuals for the month",
+    },
+    {
+      key: "type3",
+      label: "Type 3 Waste Residuals",
+      unit: "kg",
+      type: "number",
+      required: true,
+      min: 0,
+      description: "Type 3 waste residuals for the month",
+    },
+    {
+      key: "type4",
+      label: "Type 4 Waste Residuals",
+      unit: "kg",
+      type: "number",
+      required: true,
+      min: 0,
+      description: "Type 4 waste residuals for the month",
+    },
+    {
+      key: "km_travelled_gas",
+      label: t("metrics.kilometersGasKm"),
+      unit: "km",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.kilometersGas"),
+    },
+    {
+      key: "km_travelled_diesel",
+      label: t("metrics.kilometersDieselKm"),
+      unit: "km",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.kilometersDiesel"),
+    },
+    {
+      key: "km_travelled_gasoline",
+      label: t("metrics.kilometersGasolineKm"),
+      unit: "km",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.kilometersGasoline"),
+    },
+    {
+      key: "license_plate",
+      label: t("metrics.licensePlateNumber"),
+      unit: "",
+      type: "text",
+      required: false,
+      description: t("metrics.vehicleIdentifier"),
+    },
+    {
+      key: "renewable_energy_created",
+      label: t("metrics.renewableEnergyCreated"),
+      unit: "kWh",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.renewableEnergyOnSite"),
+    },
+  ];
 
   useEffect(() => {
     setFormData(initialData);
