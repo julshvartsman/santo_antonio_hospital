@@ -88,9 +88,20 @@ export interface Entry {
 export interface User {
   id: string;
   email: string;
-  role: "admin" | "department_head";
+  name: string;
+  role: string;
   hospital_id?: string;
+}
+
+export interface HospitalVariable {
+  id: string;
+  hospital_id: string;
+  variable_name: string;
+  variable_value: any;
+  variable_type: string;
+  description: string;
   created_at: string;
+  updated_at: string;
 }
 
 /*

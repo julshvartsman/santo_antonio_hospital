@@ -57,6 +57,7 @@ const translations = {
     "menu.supportMessages": "Support Messages",
     "menu.contact": "Contact",
     "menu.help": "Help",
+    "menu.hospitalVariables": "Hospital Variables",
     "others.menu": "Others",
     "back.to.main": "Back to Main Site",
     "user.menu": "User Menu",
@@ -256,7 +257,7 @@ const translations = {
     "metrics.licensePlatesRecorded": "License Plates Recorded",
     "metrics.totalKilometers": "Total Kilometers",
     "metrics.gasKilometers": "Gas Kilometers",
-    "metrics.dieselKilometers": "Diesel Kilometers", 
+    "metrics.dieselKilometers": "Diesel Kilometers",
     "metrics.gasolineKilometers": "Gasoline Kilometers",
     "metrics.energyUsage": "Energy Usage",
     "metrics.waterUsage": "Water Usage",
@@ -268,17 +269,22 @@ const translations = {
     "metrics.vehicleIdentifier": "Vehicle license plate identifier",
     "metrics.kilometersGas": "Kilometers travelled by vehicles using gas",
     "metrics.kilometersDiesel": "Kilometers travelled by vehicles using diesel",
-    "metrics.kilometersGasoline": "Kilometers travelled by vehicles using gasoline",
-    "metrics.renewableEnergyOnSite": "Amount of renewable energy generated on-site",
+    "metrics.kilometersGasoline":
+      "Kilometers travelled by vehicles using gasoline",
+    "metrics.renewableEnergyOnSite":
+      "Amount of renewable energy generated on-site",
     "metrics.sumAcrossDepartments": "Sum across all departments for this month",
-    "metrics.totalEntriesWithPlates": "Total entries with plate numbers this month",
+    "metrics.totalEntriesWithPlates":
+      "Total entries with plate numbers this month",
     "metrics.energyTrend": "Energy Trend",
-    "metrics.energyTrendDesc": "Your hospital's energy usage over the past year",
+    "metrics.energyTrendDesc":
+      "Your hospital's energy usage over the past year",
     "metrics.energyEfficiency": "Energy Efficiency",
     "metrics.energy": "Energy",
     "metrics.energyUsageData": "Energy Usage Data",
     "metrics.energyTrendTitle": "12-Month Energy Trend",
-    "metrics.energyTrendDescription": "Your hospital's energy usage over the past year",
+    "metrics.energyTrendDescription":
+      "Your hospital's energy usage over the past year",
     "metrics.energyUsageKwh": "Energy Usage (kWh)",
     "metrics.waterUsageM3": "Water Usage (m³)",
     "metrics.wasteType1": "Type 1 Waste (kg)",
@@ -340,6 +346,7 @@ const translations = {
     "menu.supportMessages": "Mensagens de Suporte",
     "menu.contact": "Contato",
     "menu.help": "Ajuda",
+    "menu.hospitalVariables": "Variáveis do Hospital",
     "others.menu": "Outros",
     "back.to.main": "Voltar ao Site Principal",
     "user.menu": "Menu do Usuário",
@@ -543,8 +550,10 @@ const translations = {
     "admin.forms.table.actions": "Ações",
     "admin.forms.viewReport": "Ver Relatório",
     // Admin Dashboard - Cumulative Metrics
-    "admin.dashboard.cumulativeMetrics": "Métricas Cumulativas - Indicadores Chave de Sustentabilidade",
-    "admin.dashboard.cumulativeMetricsDesc": "Totais agregados de todos os hospitais para o mês atual",
+    "admin.dashboard.cumulativeMetrics":
+      "Métricas Cumulativas - Indicadores Chave de Sustentabilidade",
+    "admin.dashboard.cumulativeMetricsDesc":
+      "Totais agregados de todos os hospitais para o mês atual",
     "admin.dashboard.electricityUsage": "Consumo de Eletricidade",
     "admin.dashboard.waterUsage": "Consumo de Água",
     "admin.dashboard.wasteType1": "Resíduos Tipo 1",
@@ -557,11 +566,14 @@ const translations = {
     "admin.dashboard.fuelTypeMix": "Mistura de Tipos de Combustível",
     "admin.dashboard.licensePlatesRecorded": "Matrículas Registadas",
     "admin.dashboard.vsLastMonth": "vs mês passado",
-    "admin.dashboard.vehicleEntries": "Entradas de veículos categorizadas por tipo de combustível este mês",
-    "admin.dashboard.totalEntriesWithPlates": "Total de entradas com números de matrícula este mês",
+    "admin.dashboard.vehicleEntries":
+      "Entradas de veículos categorizadas por tipo de combustível este mês",
+    "admin.dashboard.totalEntriesWithPlates":
+      "Total de entradas com números de matrícula este mês",
     // Admin Dashboard - CO2 Trend Analysis
     "admin.dashboard.co2TrendAnalysis": "Análise de Tendências de CO₂",
-    "admin.dashboard.co2TrendDesc": "Tendências de emissões de CO₂ em todo o sistema em todos os hospitais",
+    "admin.dashboard.co2TrendDesc":
+      "Tendências de emissões de CO₂ em todo o sistema em todos os hospitais",
     "admin.dashboard.totalEmissions": "Emissões Totais",
     "admin.dashboard.averagePerHospital": "Média por Hospital",
     "admin.dashboard.renewableEnergyRatio": "Rácio de Energia Renovável",
@@ -570,7 +582,8 @@ const translations = {
     "admin.dashboard.renewableRatio": "Rácio Renovável",
     // Admin Dashboard - All Hospital Submissions
     "admin.dashboard.allSubmissions": "Todas as Submissões de Hospitais",
-    "admin.dashboard.allSubmissionsDesc": "Visão geral de todas as submissões de todos os hospitais",
+    "admin.dashboard.allSubmissionsDesc":
+      "Visão geral de todas as submissões de todos os hospitais",
     "admin.dashboard.loadingMetrics": "A carregar métricas...",
     "admin.dashboard.noData": "Sem dados",
     "admin.dashboard.hospital": "Hospital",
@@ -586,7 +599,8 @@ const translations = {
     "admin.dashboard.assignmentError": "Erro ao atribuir hospital",
     // Admin Data Analysis
     "admin.dataAnalysis.title": "Análise de Dados",
-    "admin.dataAnalysis.subtitle": "Análise detalhada dos dados de sustentabilidade",
+    "admin.dataAnalysis.subtitle":
+      "Análise detalhada dos dados de sustentabilidade",
     "admin.dataAnalysis.selectMetric": "Selecionar Métrica",
     "admin.dataAnalysis.selectHospital": "Selecionar Hospital",
     "admin.dataAnalysis.loading": "A carregar dados...",
@@ -613,7 +627,8 @@ const translations = {
     "admin.notifications.pending": "pendente",
     // Admin Support Messages
     "admin.supportMessages.title": "Mensagens de Suporte",
-    "admin.supportMessages.subtitle": "Gerir mensagens de suporte dos utilizadores",
+    "admin.supportMessages.subtitle":
+      "Gerir mensagens de suporte dos utilizadores",
     "admin.supportMessages.loading": "A carregar mensagens...",
     "admin.supportMessages.noMessages": "Sem mensagens",
     "admin.supportMessages.reply": "Responder",
@@ -654,17 +669,22 @@ const translations = {
     "metrics.vehicleIdentifier": "Identificador da matrícula do veículo",
     "metrics.kilometersGas": "Quilómetros percorridos por veículos a gás",
     "metrics.kilometersDiesel": "Quilómetros percorridos por veículos a diesel",
-    "metrics.kilometersGasoline": "Quilómetros percorridos por veículos a gasolina",
-    "metrics.renewableEnergyOnSite": "Quantidade de energia renovável gerada no local",
+    "metrics.kilometersGasoline":
+      "Quilómetros percorridos por veículos a gasolina",
+    "metrics.renewableEnergyOnSite":
+      "Quantidade de energia renovável gerada no local",
     "metrics.sumAcrossDepartments": "Soma em todos os departamentos este mês",
-    "metrics.totalEntriesWithPlates": "Total de entradas com números de matrícula este mês",
+    "metrics.totalEntriesWithPlates":
+      "Total de entradas com números de matrícula este mês",
     "metrics.energyTrend": "Tendência de Energia",
-    "metrics.energyTrendDesc": "Consumo de energia do seu hospital no último ano",
+    "metrics.energyTrendDesc":
+      "Consumo de energia do seu hospital no último ano",
     "metrics.energyEfficiency": "Eficiência Energética",
     "metrics.energy": "Energia",
     "metrics.energyUsageData": "Dados de Consumo de Energia",
     "metrics.energyTrendTitle": "Tendência de Energia de 12 Meses",
-    "metrics.energyTrendDescription": "Consumo de energia do seu hospital no último ano",
+    "metrics.energyTrendDescription":
+      "Consumo de energia do seu hospital no último ano",
     "metrics.energyUsageKwh": "Consumo de Energia (kWh)",
     "metrics.waterUsageM3": "Consumo de Água (m³)",
     "metrics.wasteType1": "Resíduos Tipo 1 (kg)",

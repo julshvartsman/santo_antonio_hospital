@@ -14,6 +14,7 @@ import {
   CogIcon,
   LogOut,
   MessageCircle,
+  Database,
 } from "lucide-react";
 
 const menu = [
@@ -24,6 +25,11 @@ const menu = [
     href: "/admin/support-messages",
     label: "menu.supportMessages",
     icon: MessageCircle,
+  },
+  {
+    href: "/admin/hospital-variables",
+    label: "menu.hospitalVariables",
+    icon: Database,
   },
 ];
 
