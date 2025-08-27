@@ -14,18 +14,12 @@ import {
   CogIcon,
   LogOut,
   MessageCircle,
-  Database,
 } from "lucide-react";
 
 const menu = [
   { href: "/admin/dashboard", label: "menu.dashboard", icon: HomeIcon },
   { href: "/admin/data-analysis", label: "menu.dataAnalysis", icon: BarChart3 },
   { href: "/admin/notifications", label: "menu.notifications", icon: BellIcon },
-  {
-    href: "/admin/hospital-variables",
-    label: "menu.hospitalVariables",
-    icon: Database,
-  },
 ];
 
 const others = [
