@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/accordion";
 import {
   HelpCircle,
-  BookOpen,
   Phone,
   Mail,
 } from "lucide-react";
@@ -222,44 +221,7 @@ export default function DepartmentHelp() {
         </CardContent>
       </Card>
 
-      {/* Documentation Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BookOpen className="h-5 w-5" />
-            <span>Documentation & Resources</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">
-                Sustainability Metrics Guide
-              </h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Learn about the different sustainability metrics and how to
-                measure them accurately.
-              </p>
-              <Button variant="outline" size="sm">
-                Download Guide
-              </Button>
-            </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">
-                Best Practices
-              </h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Discover best practices for reducing energy consumption and
-                improving sustainability in healthcare settings.
-              </p>
-              <Button variant="outline" size="sm">
-                View Best Practices
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
