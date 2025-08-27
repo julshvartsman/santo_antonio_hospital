@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMyEntries } from "@/hooks/useMyEntries";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserHospital } from "@/hooks/useUserHospital";
 import { useApp } from "@/components/providers/AppProvider";
 import {
   CheckCircle,
@@ -96,6 +97,7 @@ const Sparkline = ({
 export default function DepartmentDashboard() {
   const { data, loading, error, refresh, exportToCSV } = useMyEntries();
   const { user } = useAuth();
+  const { hospital } = useUserHospital();
   const { language } = useApp();
   const router = useRouter();
 
@@ -146,6 +148,23 @@ export default function DepartmentDashboard() {
           {language.t("dashboard.department")}
         </h1>
         <p className="text-gray-600 mt-2">{language.t("dashboard.metrics")}</p>
+        
+        {/* Hospital Assignment */}
+        {hospital && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm font-medium text-blue-900">
+                Assigned Hospital: {hospital.name}
+              </span>
+              {hospital.location && (
+                <span className="text-sm text-blue-700">
+                  ({hospital.location})
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}

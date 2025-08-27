@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,32 +11,16 @@ import {
 } from "@/components/ui/accordion";
 import {
   HelpCircle,
-  MessageCircle,
   BookOpen,
   Phone,
   Mail,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useApp } from "@/components/providers/AppProvider";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function DepartmentHelp() {
   const { user } = useAuth();
   const { language } = useApp();
-  const [formData, setFormData] = useState({
-    firstName: user?.name?.split(" ")[0] || "",
-    lastName: user?.name?.split(" ").slice(1).join(" ") || "",
-    email: user?.email || "",
-    phone: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "success" | "error"
-  >("idle");
-  const [submitMessage, setSubmitMessage] = useState("");
 
   const openWhatsAppToAdmin = () => {
     // Prefer env var, fallback to contact info number
@@ -52,212 +36,19 @@ export default function DepartmentHelp() {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus("idle");
-
-    try {
-      const response = await fetch("/api/send-message", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          userId: user?.id,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setSubmitStatus("success");
-        setSubmitMessage(
-          "Your message has been sent successfully! We will get back to you soon."
-        );
-        // Reset form
-        setFormData({
-          firstName: user?.name?.split(" ")[0] || "",
-          lastName: user?.name?.split(" ").slice(1).join(" ") || "",
-          email: user?.email || "",
-          phone: "",
-          message: "",
-        });
-      } else {
-        setSubmitStatus("error");
-        setSubmitMessage(
-          result.error || "Failed to send message. Please try again."
-        );
-      }
-    } catch (error) {
-      setSubmitStatus("error");
-      setSubmitMessage(
-        "Network error. Please check your connection and try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Page Title */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
           {language.t("dept.help.title")}
         </h1>
-        <p className="text-gray-600 mt-2">{language.t("dept.help.subtitle")}</p>
+        <p className="text-gray-600 mt-2">
+          {language.t("dept.help.subtitle")}
+        </p>
       </div>
 
-      {/* Contact Information */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Contact Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <MessageCircle className="h-5 w-5" />
-              <span>{language.t("dept.help.sendMessage")}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Submit Status Alert */}
-            {submitStatus !== "idle" && (
-              <Alert
-                className={`mb-4 ${
-                  submitStatus === "success"
-                    ? "border-green-200 bg-green-50"
-                    : "border-red-200 bg-red-50"
-                }`}
-              >
-                {submitStatus === "success" ? (
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                )}
-                <AlertDescription
-                  className={
-                    submitStatus === "success"
-                      ? "text-green-800"
-                      : "text-red-800"
-                  }
-                >
-                  {submitMessage}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="firstName" className="text-sm font-medium">
-                    {language.t("dept.help.firstName")}
-                  </label>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="John"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#225384] focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="lastName" className="text-sm font-medium">
-                    {language.t("dept.help.lastName")}
-                  </label>
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Doe"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#225384] focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="email" className="text-sm font-medium">
-                  {language.t("dept.help.email")}
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="john.doe@hospital.com"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#225384] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="phone" className="text-sm font-medium">
-                  {language.t("dept.help.phoneNumber")}
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+351 960 960 960"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#225384] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="text-sm font-medium">
-                  {language.t("dept.help.message")}
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleInputChange}
-                  placeholder="Write your message.."
-                  rows={5}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#225384] focus:border-transparent"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-[#225384] hover:bg-[#1a4a6b] disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {language.t("dept.help.sending")}
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      {language.t("dept.help.send")}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contact Information */}
         <Card>
           <CardHeader>
@@ -327,7 +118,7 @@ export default function DepartmentHelp() {
           </CardContent>
         </Card>
 
-        {/* Direct Support Section (compact) */}
+        {/* Direct Support Section */}
         <Card>
           <CardHeader>
             <CardTitle className="text-[#225384]">
@@ -352,7 +143,7 @@ export default function DepartmentHelp() {
         </Card>
       </div>
 
-      {/* FAQ Section - Now below the send message */}
+      {/* FAQ Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -399,56 +190,74 @@ export default function DepartmentHelp() {
             <AccordionItem value="item-4">
               <AccordionTrigger>When are monthly reports due?</AccordionTrigger>
               <AccordionContent>
-                Monthly sustainability reports are typically due by the 15th of
-                each month for the previous month's data. You'll receive email
-                reminders as the deadline approaches.
+                Monthly reports are typically due by the 15th of the following
+                month. You'll receive notifications when your report is due or
+                overdue.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-5">
-              <AccordionTrigger>How do I change my password?</AccordionTrigger>
+              <AccordionTrigger>
+                What metrics should I include in my report?
+              </AccordionTrigger>
               <AccordionContent>
-                Go to Settings from the sidebar menu. In the Security Settings
-                section, enter your current password and then your new password.
-                Click "Change Password" to save the changes.
+                Include energy consumption (kWh), water usage (m³), waste
+                generation (kg), recycling rates (%), CO₂ emissions (kg), and
+                any renewable energy usage. Additional metrics like paper usage
+                and chemical usage are optional.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-6">
               <AccordionTrigger>
-                What sustainability metrics should I track?
+                How do I get help if I'm having technical issues?
               </AccordionTrigger>
               <AccordionContent>
-                You should track energy usage (kWh), water consumption (m³),
-                waste generation (kg), and recycling rates (%). Additional
-                metrics may be required based on your hospital's specific
-                sustainability goals.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-7">
-              <AccordionTrigger>
-                How do I view my department's reports and analytics?
-              </AccordionTrigger>
-              <AccordionContent>
-                Go to the Data Entry page and click on the "Reports & Analytics"
-                tab. Here you can view energy trends, monthly reports, and
-                export your data.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-8">
-              <AccordionTrigger>
-                What if I can't access my account?
-              </AccordionTrigger>
-              <AccordionContent>
-                If you're having trouble accessing your account, try resetting
-                your password on the login page. If the issue persists, contact
-                support using the form above or call the support number
-                provided.
+                For technical support, you can contact us via WhatsApp using the
+                button above, or reach out via phone or email using the contact
+                information provided.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+        </CardContent>
+      </Card>
+
+      {/* Documentation Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <BookOpen className="h-5 w-5" />
+            <span>Documentation & Resources</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Sustainability Metrics Guide
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Learn about the different sustainability metrics and how to
+                measure them accurately.
+              </p>
+              <Button variant="outline" size="sm">
+                Download Guide
+              </Button>
+            </div>
+
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">
+                Best Practices
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Discover best practices for reducing energy consumption and
+                improving sustainability in healthcare settings.
+              </p>
+              <Button variant="outline" size="sm">
+                View Best Practices
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

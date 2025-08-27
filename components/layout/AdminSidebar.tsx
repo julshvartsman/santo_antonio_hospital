@@ -22,11 +22,6 @@ const menu = [
   { href: "/admin/data-analysis", label: "menu.dataAnalysis", icon: BarChart3 },
   { href: "/admin/notifications", label: "menu.notifications", icon: BellIcon },
   {
-    href: "/admin/support-messages",
-    label: "menu.supportMessages",
-    icon: MessageCircle,
-  },
-  {
     href: "/admin/hospital-variables",
     label: "menu.hospitalVariables",
     icon: Database,
