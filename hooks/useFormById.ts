@@ -59,7 +59,7 @@ export const useFormById = (formId: string) => {
         .from("forms")
         .select("*")
         .eq("id", formId)
-        .single();
+        .maybeSingle();
 
       if (formError && formError.code !== "PGRST116") {
         throw formError;
@@ -72,7 +72,7 @@ export const useFormById = (formId: string) => {
         .select("*")
         .eq("hospital_id", hospitalId)
         .eq("month_year", monthYear)
-        .single();
+        .maybeSingle();
 
       if (entryError && entryError.code !== "PGRST116") {
         throw entryError;
