@@ -993,12 +993,19 @@ export default function AdminDashboard() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              // Navigate to a detailed report view
-                              router.push(
-                                `/admin/report/${form.hospital_id}/${
+                              try {
+                                // Navigate to a detailed report view
+                                const reportUrl = `/admin/report/${form.hospital_id}/${
                                   form.year
-                                }-${String(form.month).padStart(2, "0")}`
-                              );
+                                }-${String(form.month).padStart(2, "0")}`;
+                                console.log("Navigating to report:", reportUrl);
+                                console.log("Form data:", form);
+                                console.log("Router object:", router);
+                                router.push(reportUrl);
+                              } catch (error) {
+                                console.error("Navigation error:", error);
+                                alert(`Navigation error: ${error}`);
+                              }
                             }}
                             className="flex items-center space-x-1"
                           >
