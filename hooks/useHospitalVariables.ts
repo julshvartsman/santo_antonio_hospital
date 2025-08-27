@@ -104,6 +104,11 @@ export function useHospitalVariables(hospitalId: string) {
     }
   };
 
+  const getVariableValue = (variableName: string) => {
+    const variable = variables.find(v => v.variable_name === variableName);
+    return variable ? variable.variable_value : null;
+  };
+
   return {
     variables,
     loading,
@@ -111,5 +116,6 @@ export function useHospitalVariables(hospitalId: string) {
     addVariable,
     updateVariable,
     deleteVariable,
+    getVariableValue,
   };
 }
