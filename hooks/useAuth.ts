@@ -149,7 +149,7 @@ class AuthService {
       options: {
         data: {
           full_name: credentials.name || credentials.email.split("@")[0],
-          role: "department_head",
+          role: "department_head", // Always department_head for new signups
         },
       },
     });

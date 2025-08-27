@@ -18,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
 import {
   Select,
   SelectContent,
@@ -37,9 +38,7 @@ const signupSchema = z
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
-    role: z.enum(["admin", "department_head"], {
-      required_error: "Please select a role",
-    }),
+    role: z.literal("department_head"),
     hospital: z.string().min(1, "Hospital name is required"),
     // department: z.string().optional(), // Removed - not in database schema
   })
@@ -310,37 +309,6 @@ export default function SignupPage() {
                           className="h-12 border-2 border-gray-200 rounded-lg"
                         />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={signupForm.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{language.t("signup.role")}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 border-2 border-gray-200 rounded-lg">
-                            <SelectValue
-                              placeholder={language.t("signup.selectRole")}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="department_head">
-                            {language.t("signup.departmentHead")}
-                          </SelectItem>
-                          <SelectItem value="admin">
-                            {language.t("signup.admin")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
