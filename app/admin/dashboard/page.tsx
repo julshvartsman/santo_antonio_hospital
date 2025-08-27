@@ -995,9 +995,12 @@ export default function AdminDashboard() {
                             onClick={() => {
                               try {
                                 // Navigate to a detailed report view
-                                const reportUrl = `/admin/report/${form.hospital_id}/${
-                                  form.year
-                                }-${String(form.month).padStart(2, "0")}`;
+                                const reportUrl = `/admin/report/${
+                                  form.hospital_id
+                                }/${form.year}-${String(form.month).padStart(
+                                  2,
+                                  "0"
+                                )}`;
                                 console.log("Navigating to report:", reportUrl);
                                 console.log("Form data:", form);
                                 console.log("Router object:", router);
