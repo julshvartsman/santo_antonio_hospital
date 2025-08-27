@@ -41,7 +41,9 @@ export const useFormById = (formId: string) => {
   };
 
   const fetchForm = async () => {
-    if (!user?.hospital_id) {
+    // For admin users, we don't need to check hospital_id since they can access any hospital's forms
+    // For department users, we still check their hospital_id
+    if (user?.role !== 'admin' && user?.role !== 'super_admin' && !user?.hospital_id) {
       setLoading(false);
       return;
     }
