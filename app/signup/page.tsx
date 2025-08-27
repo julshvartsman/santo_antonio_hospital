@@ -101,6 +101,7 @@ export default function SignupPage() {
             role: data.role,
             hospital: data.hospital,
           },
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
         },
       });
 

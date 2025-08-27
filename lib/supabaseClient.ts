@@ -11,6 +11,8 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseKey, {
     flowType: "pkce",
     // Reduce auth timeout for faster response
     storageKey: "cityx-hospital-auth",
+    // Add redirect URL configuration
+    redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
   },
   global: {
     headers: {
