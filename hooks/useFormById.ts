@@ -173,13 +173,13 @@ export const useFormById = (formId: string) => {
       // Convert and validate form data
       const convertedData = convertFormData(data);
 
-      // Check if entry already exists
+      // Check if entry already exists for this hospital and month/year
       const { data: existingEntry, error: checkError } = await supabase
         .from("entries")
-        .select("id")
+        .select("id, user_id")
         .eq("hospital_id", form.hospital_id)
         .eq("month_year", monthYear)
-        .single();
+        .maybeSingle();
 
       const entryData = {
         hospital_id: form.hospital_id,
@@ -283,13 +283,13 @@ export const useFormById = (formId: string) => {
         updated_at: new Date().toISOString(),
       };
 
-      // Check if entry already exists
+      // Check if entry already exists for this hospital and month/year
       const { data: existingEntry, error: checkError } = await supabase
         .from("entries")
-        .select("id")
+        .select("id, user_id")
         .eq("hospital_id", form.hospital_id)
         .eq("month_year", monthYear)
-        .single();
+        .maybeSingle();
 
       let entryResult;
 
