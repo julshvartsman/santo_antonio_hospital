@@ -59,11 +59,6 @@ export default function AdminDashboard() {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState<string | null>(null);
-  const [sendingReminder, setSendingReminder] = useState<string | null>(null);
-  const [reminderStatus, setReminderStatus] = useState<{
-    type: "success" | "error" | null;
-    message: string;
-  }>({ type: null, message: "" });
 
   // Use the existing hook for department data
   const {
@@ -136,47 +131,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSendReminder = async (departmentHeadEmail: string) => {
-    try {
-      setSendingReminder(departmentHeadEmail);
-      setReminderStatus({ type: null, message: "" });
 
-      const response = await fetch("/api/send-reminder", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          departmentHeadEmail,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setReminderStatus({
-          type: "success",
-          message: `Reminder sent successfully to ${result.departmentHead.name}`,
-        });
-      } else {
-        setReminderStatus({
-          type: "error",
-          message: result.error || "Failed to send reminder",
-        });
-      }
-    } catch (error) {
-      setReminderStatus({
-        type: "error",
-        message: "Network error. Please try again.",
-      });
-    } finally {
-      setSendingReminder(null);
-      // Clear status after 3 seconds
-      setTimeout(() => {
-        setReminderStatus({ type: null, message: "" });
-      }, 3000);
-    }
-  };
 
   const getSubmissionStatusBadge = (
     submitted: boolean,
@@ -197,19 +152,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const openWhatsApp = (phone: string, hospitalName: string) => {
-    if (!phone) return;
-    const digits = phone.replace(/\D/g, "");
-    const now = new Date();
-    const monthName = now.toLocaleString("default", {
-      month: "long",
-      year: "numeric",
-    });
-    const appUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const text = `Reminder: Please submit your monthly sustainability data for ${hospitalName} (${monthName}). ${appUrl}`;
-    const url = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
+
 
   return (
     <div className="space-y-6">
@@ -221,31 +164,7 @@ export default function AdminDashboard() {
         <p className="text-gray-600 mt-2">{language.t("dashboard.manage")}</p>
       </div>
 
-      {/* Reminder Status Alert */}
-      {reminderStatus.type && (
-        <Alert
-          className={
-            reminderStatus.type === "success"
-              ? "border-green-200 bg-green-50"
-              : "border-red-200 bg-red-50"
-          }
-        >
-          {reminderStatus.type === "success" ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          )}
-          <AlertDescription
-            className={
-              reminderStatus.type === "success"
-                ? "text-green-800"
-                : "text-red-800"
-            }
-          >
-            {reminderStatus.message}
-          </AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Department Heads Management Section */}
       <Card>
@@ -282,15 +201,11 @@ export default function AdminDashboard() {
                   <TableHead>
                     {language.t("admin.forms.table.deptHead")}
                   </TableHead>
-                  <TableHead>{language.t("admin.users.table.email")}</TableHead>
                   <TableHead>
                     {language.t("admin.forms.table.status")}
                   </TableHead>
                   <TableHead>
                     {language.t("dept.dashboard.lastUpdated")}
-                  </TableHead>
-                  <TableHead>
-                    {language.t("admin.dashboard.sendReminder")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -303,10 +218,6 @@ export default function AdminDashboard() {
                     <TableCell>
                       {hospital.department_head?.name ||
                         language.t("admin.common.notAssigned")}
-                    </TableCell>
-                    <TableCell>
-                      {hospital.department_head?.email ||
-                        language.t("admin.common.na")}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -327,76 +238,6 @@ export default function AdminDashboard() {
                       ) : (
                         <span className="text-gray-500">Never</span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        {hospital.department_head?.email ? (
-                          <Button
-                            variant={
-                              hospital.submission_status.submitted
-                                ? "outline"
-                                : "default"
-                            }
-                            size="sm"
-                            onClick={() =>
-                              handleSendReminder(hospital.department_head.email)
-                            }
-                            disabled={
-                              sendingReminder ===
-                                hospital.department_head.email ||
-                              hospital.submission_status.submitted
-                            }
-                            className={`flex items-center space-x-1 ${
-                              hospital.submission_status.submitted
-                                ? "opacity-50 cursor-not-allowed"
-                                : "hover:bg-blue-600"
-                            }`}
-                          >
-                            {sendingReminder ===
-                            hospital.department_head.email ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                                <span>Sending...</span>
-                              </>
-                            ) : hospital.submission_status.submitted ? (
-                              <>
-                                <CheckCircle className="h-3 w-3" />
-                                <span>
-                                  {language.t("admin.dashboard.submitted")}
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <Mail className="h-3 w-3" />
-                                <span>
-                                  {language.t("admin.dashboard.sendReminder")}
-                                </span>
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <div className="text-sm text-gray-500">
-                            {language.t("admin.common.notAssigned")}
-                          </div>
-                        )}
-                        {hospital.department_head?.phone &&
-                          !hospital.submission_status.submitted && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                openWhatsApp(
-                                  hospital.department_head!.phone as string,
-                                  hospital.name
-                                )
-                              }
-                              className="flex items-center space-x-1"
-                            >
-                              <MessageCircle className="h-3 w-3" />
-                              <span>WhatsApp</span>
-                            </Button>
-                          )}
-                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1015,36 +856,7 @@ export default function AdminDashboard() {
                             <Activity className="h-3 w-3" />
                             <span>{language.t("admin.forms.viewReport")}</span>
                           </Button>
-                          {form.department_head?.email && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                handleSendReminder(form.department_head!.email)
-                              }
-                              disabled={
-                                sendingReminder === form.department_head!.email
-                              }
-                              className="flex items-center space-x-1"
-                            >
-                              {sendingReminder ===
-                              form.department_head!.email ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                                  <span>
-                                    {language.t("admin.dashboard.sending")}
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <Mail className="h-3 w-3" />
-                                  <span>
-                                    {language.t("admin.dashboard.sendReminder")}
-                                  </span>
-                                </>
-                              )}
-                            </Button>
-                          )}
+
                         </div>
                       </TableCell>
                     </TableRow>
