@@ -533,37 +533,29 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Kilometers by Fuel */}
+              {/* Fuel Efficiency */}
               <div className="bg-slate-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-slate-600">
-                      {language.t("metrics.kilometersByFuel")}
+                      Fuel Efficiency (km/L)
                     </p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      Gas:{" "}
-                      {Math.round(
-                        cumulativeMetrics.total_km_gas || 0
-                      ).toLocaleString()}{" "}
-                      km
-                    </p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      Diesel:{" "}
-                      {Math.round(
-                        cumulativeMetrics.total_km_diesel || 0
-                      ).toLocaleString()}{" "}
-                      km
-                    </p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      Gasoline:{" "}
-                      {Math.round(
-                        cumulativeMetrics.total_km_gasoline || 0
-                      ).toLocaleString()}{" "}
-                      km
-                    </p>
-                    <p className="text-xs text-slate-600/70">
-                      {language.t("metrics.sumAcrossDepartments")}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-lg font-bold text-slate-900">
+                        Gas: {(cumulativeMetrics.avg_fuel_efficiency_gas || 0).toFixed(2)} km/L
+                      </p>
+                      <p className="text-lg font-bold text-slate-900">
+                        Diesel: {(cumulativeMetrics.avg_fuel_efficiency_diesel || 0).toFixed(2)} km/L
+                      </p>
+                      <p className="text-lg font-bold text-slate-900">
+                        Gasoline: {(cumulativeMetrics.avg_fuel_efficiency_gasoline || 0).toFixed(2)} km/L
+                      </p>
+                    </div>
+                    <div className="mt-2 text-xs text-slate-600/70 space-y-1">
+                      <p>Gas: {Math.round(cumulativeMetrics.total_km_gas || 0).toLocaleString()} km / {Math.round(cumulativeMetrics.total_liters_gas || 0).toLocaleString()} L</p>
+                      <p>Diesel: {Math.round(cumulativeMetrics.total_km_diesel || 0).toLocaleString()} km / {Math.round(cumulativeMetrics.total_liters_diesel || 0).toLocaleString()} L</p>
+                      <p>Gasoline: {Math.round(cumulativeMetrics.total_km_gasoline || 0).toLocaleString()} km / {Math.round(cumulativeMetrics.total_liters_gasoline || 0).toLocaleString()} L</p>
+                    </div>
                   </div>
                   <Activity className="h-8 w-8 text-slate-600" />
                 </div>

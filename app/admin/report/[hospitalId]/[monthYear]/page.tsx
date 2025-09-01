@@ -34,8 +34,11 @@ interface ReportData {
   waste_type4: number;
   co2_emissions: number;
   km_travelled_gas?: number;
+  liters_consumed_gas?: number;
   km_travelled_diesel?: number;
+  liters_consumed_diesel?: number;
   km_travelled_gasoline?: number;
+  liters_consumed_gasoline?: number;
   license_plate?: string;
   renewable_energy_created?: number;
   submitted: boolean;
@@ -195,8 +198,11 @@ export default function HospitalReportPage() {
             waste_type4: 0,
             co2_emissions: 0,
             km_travelled_gas: 0,
+            liters_consumed_gas: 0,
             km_travelled_diesel: 0,
+            liters_consumed_diesel: 0,
             km_travelled_gasoline: 0,
+            liters_consumed_gasoline: 0,
             license_plate: "",
             renewable_energy_created: 0,
             submitted: formData.submitted,
@@ -225,8 +231,11 @@ export default function HospitalReportPage() {
           waste_type4: entriesData.type4 || 0,
           co2_emissions: entriesData.co2_emissions || 0,
           km_travelled_gas: entriesData.km_travelled_gas || 0,
+          liters_consumed_gas: entriesData.liters_consumed_gas || 0,
           km_travelled_diesel: entriesData.km_travelled_diesel || 0,
+          liters_consumed_diesel: entriesData.liters_consumed_diesel || 0,
           km_travelled_gasoline: entriesData.km_travelled_gasoline || 0,
+          liters_consumed_gasoline: entriesData.liters_consumed_gasoline || 0,
           license_plate: entriesData.license_plate || "",
           renewable_energy_created: entriesData.renewable_energy_created || 0,
           submitted: entriesData.submitted || false,
@@ -322,8 +331,11 @@ export default function HospitalReportPage() {
         type4: editableData.waste_type4,
         co2_emissions: editableData.co2_emissions,
         km_travelled_gas: editableData.km_travelled_gas || 0,
+        liters_consumed_gas: editableData.liters_consumed_gas || 0,
         km_travelled_diesel: editableData.km_travelled_diesel || 0,
+        liters_consumed_diesel: editableData.liters_consumed_diesel || 0,
         km_travelled_gasoline: editableData.km_travelled_gasoline || 0,
+        liters_consumed_gasoline: editableData.liters_consumed_gasoline || 0,
         license_plate: editableData.license_plate,
         renewable_energy_created: editableData.renewable_energy_created,
         submitted: editableData.submitted,
@@ -752,78 +764,159 @@ export default function HospitalReportPage() {
             </CardContent>
           </Card>
 
-          {/* Kilometers by Fuel */}
-          <Card>
+          {/* Fuel Efficiency */}
+          <Card className="col-span-1 md:col-span-2">
             <CardHeader>
               <CardTitle className="text-indigo-600">
-                Kilometers by Fuel
+                Fuel Efficiency (km/L)
               </CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing && editableData ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Gas */}
                   <div className="space-y-2">
-                    <Label htmlFor="km_travelled_gas">Gas (km)</Label>
-                    <Input
-                      id="km_travelled_gas"
-                      type="number"
-                      value={editableData.km_travelled_gas || 0}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "km_travelled_gas",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="text-lg"
-                    />
+                    <h4 className="font-semibold">Gas</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="km_travelled_gas">Kilometers</Label>
+                      <Input
+                        id="km_travelled_gas"
+                        type="number"
+                        value={editableData.km_travelled_gas || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "km_travelled_gas",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="liters_consumed_gas">Liters</Label>
+                      <Input
+                        id="liters_consumed_gas"
+                        type="number"
+                        value={editableData.liters_consumed_gas || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "liters_consumed_gas",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                      />
+                    </div>
                   </div>
+                  
+                  {/* Diesel */}
                   <div className="space-y-2">
-                    <Label htmlFor="km_travelled_diesel">Diesel (km)</Label>
-                    <Input
-                      id="km_travelled_diesel"
-                      type="number"
-                      value={editableData.km_travelled_diesel || 0}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "km_travelled_diesel",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="text-lg"
-                    />
+                    <h4 className="font-semibold">Diesel</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="km_travelled_diesel">Kilometers</Label>
+                      <Input
+                        id="km_travelled_diesel"
+                        type="number"
+                        value={editableData.km_travelled_diesel || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "km_travelled_diesel",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="liters_consumed_diesel">Liters</Label>
+                      <Input
+                        id="liters_consumed_diesel"
+                        type="number"
+                        value={editableData.liters_consumed_diesel || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "liters_consumed_diesel",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                      />
+                    </div>
                   </div>
+                  
+                  {/* Gasoline */}
                   <div className="space-y-2">
-                    <Label htmlFor="km_travelled_gasoline">Gasoline (km)</Label>
-                    <Input
-                      id="km_travelled_gasoline"
-                      type="number"
-                      value={editableData.km_travelled_gasoline || 0}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "km_travelled_gasoline",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="text-lg"
-                    />
+                    <h4 className="font-semibold">Gasoline</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="km_travelled_gasoline">Kilometers</Label>
+                      <Input
+                        id="km_travelled_gasoline"
+                        type="number"
+                        value={editableData.km_travelled_gasoline || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "km_travelled_gasoline",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="liters_consumed_gasoline">Liters</Label>
+                      <Input
+                        id="liters_consumed_gasoline"
+                        type="number"
+                        value={editableData.liters_consumed_gasoline || 0}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "liters_consumed_gasoline",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
-                <>
-                  <div className="text-3xl font-bold text-indigo-600">
-                    Gas: {(reportData.km_travelled_gas || 0).toLocaleString()}{" "}
-                    km
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Gas */}
+                  <div className="text-center">
+                    <h4 className="font-semibold text-indigo-600">Gas</h4>
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {((reportData.liters_consumed_gas || 0) > 0 
+                        ? (reportData.km_travelled_gas || 0) / (reportData.liters_consumed_gas || 1)
+                        : 0
+                      ).toFixed(2)} km/L
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {(reportData.km_travelled_gas || 0).toLocaleString()} km / {(reportData.liters_consumed_gas || 0).toLocaleString()} L
+                    </div>
                   </div>
-                  <div className="text-3xl font-bold text-indigo-600">
-                    Diesel:{" "}
-                    {(reportData.km_travelled_diesel || 0).toLocaleString()} km
+                  
+                  {/* Diesel */}
+                  <div className="text-center">
+                    <h4 className="font-semibold text-indigo-600">Diesel</h4>
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {((reportData.liters_consumed_diesel || 0) > 0 
+                        ? (reportData.km_travelled_diesel || 0) / (reportData.liters_consumed_diesel || 1)
+                        : 0
+                      ).toFixed(2)} km/L
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {(reportData.km_travelled_diesel || 0).toLocaleString()} km / {(reportData.liters_consumed_diesel || 0).toLocaleString()} L
+                    </div>
                   </div>
-                  <div className="text-3xl font-bold text-indigo-600">
-                    Gasoline:{" "}
-                    {(reportData.km_travelled_gasoline || 0).toLocaleString()}{" "}
-                    km
+                  
+                  {/* Gasoline */}
+                  <div className="text-center">
+                    <h4 className="font-semibold text-indigo-600">Gasoline</h4>
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {((reportData.liters_consumed_gasoline || 0) > 0 
+                        ? (reportData.km_travelled_gasoline || 0) / (reportData.liters_consumed_gasoline || 1)
+                        : 0
+                      ).toFixed(2)} km/L
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {(reportData.km_travelled_gasoline || 0).toLocaleString()} km / {(reportData.liters_consumed_gasoline || 0).toLocaleString()} L
+                    </div>
                   </div>
-                </>
+                </div>
               )}
             </CardContent>
           </Card>

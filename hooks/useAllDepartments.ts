@@ -15,10 +15,16 @@ export interface HospitalWithMetrics extends Hospital {
     co2_emissions: number;
     total_kilometers_travelled?: number; // Computed sum of the three fuel types
     km_travelled_gas?: number;
+    liters_consumed_gas?: number;
     km_travelled_diesel?: number;
+    liters_consumed_diesel?: number;
     km_travelled_gasoline?: number;
+    liters_consumed_gasoline?: number;
     renewable_energy_created?: number;
     license_plate_count?: number; // 1 if present, else 0
+    fuel_efficiency_gas?: number; // km/liter for gas
+    fuel_efficiency_diesel?: number; // km/liter for diesel
+    fuel_efficiency_gasoline?: number; // km/liter for gasoline
   };
   previous_month_totals: {
     kwh_usage: number;
@@ -30,10 +36,16 @@ export interface HospitalWithMetrics extends Hospital {
     co2_emissions: number;
     total_kilometers_travelled?: number; // Computed sum of the three fuel types
     km_travelled_gas?: number;
+    liters_consumed_gas?: number;
     km_travelled_diesel?: number;
+    liters_consumed_diesel?: number;
     km_travelled_gasoline?: number;
+    liters_consumed_gasoline?: number;
     renewable_energy_created?: number;
     license_plate_count?: number;
+    fuel_efficiency_gas?: number; // km/liter for gas
+    fuel_efficiency_diesel?: number; // km/liter for diesel
+    fuel_efficiency_gasoline?: number; // km/liter for gasoline
   };
   percentage_changes: {
     kwh: number;
@@ -63,10 +75,16 @@ export interface CumulativeMetrics {
   total_co2: number;
   total_kilometers_travelled: number;
   total_km_gas: number;
+  total_liters_gas: number;
   total_km_diesel: number;
+  total_liters_diesel: number;
   total_km_gasoline: number;
+  total_liters_gasoline: number;
   total_renewable_energy_created: number;
   total_license_plate_count: number;
+  avg_fuel_efficiency_gas: number; // km/liter
+  avg_fuel_efficiency_diesel: number; // km/liter
+  avg_fuel_efficiency_gasoline: number; // km/liter
   previous_total_kwh: number;
   previous_total_water_m3: number;
   previous_total_waste_type1: number;
@@ -76,8 +94,11 @@ export interface CumulativeMetrics {
   previous_total_co2: number;
   previous_total_kilometers_travelled: number;
   previous_total_km_gas: number;
+  previous_total_liters_gas: number;
   previous_total_km_diesel: number;
+  previous_total_liters_diesel: number;
   previous_total_km_gasoline: number;
+  previous_total_liters_gasoline: number;
   previous_total_renewable_energy_created: number;
   previous_total_license_plate_count: number;
   overall_changes: {
@@ -223,11 +244,23 @@ export function useAllDepartments() {
               (currentEntry?.km_travelled_diesel || 0) +
               (currentEntry?.km_travelled_gasoline || 0),
             km_travelled_gas: currentEntry?.km_travelled_gas || 0,
+            liters_consumed_gas: currentEntry?.liters_consumed_gas || 0,
             km_travelled_diesel: currentEntry?.km_travelled_diesel || 0,
+            liters_consumed_diesel: currentEntry?.liters_consumed_diesel || 0,
             km_travelled_gasoline: currentEntry?.km_travelled_gasoline || 0,
+            liters_consumed_gasoline: currentEntry?.liters_consumed_gasoline || 0,
             renewable_energy_created:
               currentEntry?.renewable_energy_created || 0,
             license_plate_count: currentEntry?.license_plate ? 1 : 0,
+            fuel_efficiency_gas: (currentEntry?.liters_consumed_gas && currentEntry?.liters_consumed_gas > 0) 
+              ? (currentEntry?.km_travelled_gas || 0) / currentEntry.liters_consumed_gas
+              : 0,
+            fuel_efficiency_diesel: (currentEntry?.liters_consumed_diesel && currentEntry?.liters_consumed_diesel > 0)
+              ? (currentEntry?.km_travelled_diesel || 0) / currentEntry.liters_consumed_diesel
+              : 0,
+            fuel_efficiency_gasoline: (currentEntry?.liters_consumed_gasoline && currentEntry?.liters_consumed_gasoline > 0)
+              ? (currentEntry?.km_travelled_gasoline || 0) / currentEntry.liters_consumed_gasoline
+              : 0,
           };
 
           const previous_month_totals = {
@@ -243,11 +276,23 @@ export function useAllDepartments() {
               (previousEntry?.km_travelled_diesel || 0) +
               (previousEntry?.km_travelled_gasoline || 0),
             km_travelled_gas: previousEntry?.km_travelled_gas || 0,
+            liters_consumed_gas: previousEntry?.liters_consumed_gas || 0,
             km_travelled_diesel: previousEntry?.km_travelled_diesel || 0,
+            liters_consumed_diesel: previousEntry?.liters_consumed_diesel || 0,
             km_travelled_gasoline: previousEntry?.km_travelled_gasoline || 0,
+            liters_consumed_gasoline: previousEntry?.liters_consumed_gasoline || 0,
             renewable_energy_created:
               previousEntry?.renewable_energy_created || 0,
             license_plate_count: previousEntry?.license_plate ? 1 : 0,
+            fuel_efficiency_gas: (previousEntry?.liters_consumed_gas && previousEntry?.liters_consumed_gas > 0) 
+              ? (previousEntry?.km_travelled_gas || 0) / previousEntry.liters_consumed_gas
+              : 0,
+            fuel_efficiency_diesel: (previousEntry?.liters_consumed_diesel && previousEntry?.liters_consumed_diesel > 0)
+              ? (previousEntry?.km_travelled_diesel || 0) / previousEntry.liters_consumed_diesel
+              : 0,
+            fuel_efficiency_gasoline: (previousEntry?.liters_consumed_gasoline && previousEntry?.liters_consumed_gasoline > 0)
+              ? (previousEntry?.km_travelled_gasoline || 0) / previousEntry.liters_consumed_gasoline
+              : 0,
           };
 
           const percentage_changes = {
@@ -387,18 +432,33 @@ export function useAllDepartments() {
           (sum, h) => sum + (h.current_month_totals.km_travelled_gas || 0),
           0
         ),
+        total_liters_gas: processedHospitals.reduce(
+          (sum, h) => sum + (h.current_month_totals.liters_consumed_gas || 0),
+          0
+        ),
         total_km_diesel: processedHospitals.reduce(
           (sum, h) => sum + (h.current_month_totals.km_travelled_diesel || 0),
+          0
+        ),
+        total_liters_diesel: processedHospitals.reduce(
+          (sum, h) => sum + (h.current_month_totals.liters_consumed_diesel || 0),
           0
         ),
         total_km_gasoline: processedHospitals.reduce(
           (sum, h) => sum + (h.current_month_totals.km_travelled_gasoline || 0),
           0
         ),
+        total_liters_gasoline: processedHospitals.reduce(
+          (sum, h) => sum + (h.current_month_totals.liters_consumed_gasoline || 0),
+          0
+        ),
         total_license_plate_count: processedHospitals.reduce(
           (sum, h) => sum + (h.current_month_totals.license_plate_count || 0),
           0
         ),
+        avg_fuel_efficiency_gas: 0, // Will be calculated below
+        avg_fuel_efficiency_diesel: 0, // Will be calculated below
+        avg_fuel_efficiency_gasoline: 0, // Will be calculated below
         previous_total_kwh: processedHospitals.reduce(
           (sum, h) => sum + h.previous_month_totals.kwh_usage,
           0
@@ -440,13 +500,25 @@ export function useAllDepartments() {
           (sum, h) => sum + (h.previous_month_totals.km_travelled_gas || 0),
           0
         ),
+        previous_total_liters_gas: processedHospitals.reduce(
+          (sum, h) => sum + (h.previous_month_totals.liters_consumed_gas || 0),
+          0
+        ),
         previous_total_km_diesel: processedHospitals.reduce(
           (sum, h) => sum + (h.previous_month_totals.km_travelled_diesel || 0),
+          0
+        ),
+        previous_total_liters_diesel: processedHospitals.reduce(
+          (sum, h) => sum + (h.previous_month_totals.liters_consumed_diesel || 0),
           0
         ),
         previous_total_km_gasoline: processedHospitals.reduce(
           (sum, h) =>
             sum + (h.previous_month_totals.km_travelled_gasoline || 0),
+          0
+        ),
+        previous_total_liters_gasoline: processedHospitals.reduce(
+          (sum, h) => sum + (h.previous_month_totals.liters_consumed_gasoline || 0),
           0
         ),
         previous_total_license_plate_count: processedHospitals.reduce(
@@ -465,6 +537,17 @@ export function useAllDepartments() {
           renewable_energy: 0,
         },
       };
+
+      // Calculate average fuel efficiency
+      cumulative.avg_fuel_efficiency_gas = cumulative.total_liters_gas > 0 
+        ? cumulative.total_km_gas / cumulative.total_liters_gas 
+        : 0;
+      cumulative.avg_fuel_efficiency_diesel = cumulative.total_liters_diesel > 0 
+        ? cumulative.total_km_diesel / cumulative.total_liters_diesel 
+        : 0;
+      cumulative.avg_fuel_efficiency_gasoline = cumulative.total_liters_gasoline > 0 
+        ? cumulative.total_km_gasoline / cumulative.total_liters_gasoline 
+        : 0;
 
       console.log("🔍 Debug - Cumulative metrics calculated:", cumulative);
       console.log("🔍 Debug - New fields totals:", {
