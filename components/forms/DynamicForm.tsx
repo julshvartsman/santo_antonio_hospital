@@ -24,6 +24,7 @@ interface DynamicFormProps {
   isSubmitted?: boolean;
   loading?: boolean;
   saving?: boolean;
+  allowAdminEdit?: boolean;
 }
 
 export const DynamicForm: React.FC<DynamicFormProps> = ({
@@ -37,11 +38,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   isSubmitted = false,
   loading = false,
   saving = false,
+  allowAdminEdit = false,
 }) => {
   const { t } = useLanguage();
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Determine if the form should be editable
+  const isEditable = !isSubmitted || allowAdminEdit;
 
   // Define the sustainability metrics inside component to access translations
   const SUSTAINABILITY_METRICS: FormMetric[] = [
@@ -109,6 +114,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       description: t("metrics.kilometersGas"),
     },
     {
+      key: "liters_consumed_gas",
+      label: t("metrics.litersGasConsumed"),
+      unit: "L",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.litersGasUsed"),
+    },
+    {
       key: "km_travelled_diesel",
       label: t("metrics.kilometersDieselKm"),
       unit: "km",
@@ -118,6 +132,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       description: t("metrics.kilometersDiesel"),
     },
     {
+      key: "liters_consumed_diesel",
+      label: t("metrics.litersDieselConsumed"),
+      unit: "L",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.litersDieselUsed"),
+    },
+    {
       key: "km_travelled_gasoline",
       label: t("metrics.kilometersGasolineKm"),
       unit: "km",
@@ -125,6 +148,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       required: false,
       min: 0,
       description: t("metrics.kilometersGasoline"),
+    },
+    {
+      key: "liters_consumed_gasoline",
+      label: t("metrics.litersGasolineConsumed"),
+      unit: "L",
+      type: "number",
+      required: false,
+      min: 0,
+      description: t("metrics.litersGasolineUsed"),
     },
     {
       key: "license_plate",
@@ -319,7 +351,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   className={`w-full rounded-md border px-3 py-2 text-sm ${
                     errors[metric.key] ? "border-red-500" : "border-input"
                   }`}
-                  disabled={isSubmitted}
+                  disabled={!isEditable}
                 >
                   <option value="">Select fuel type</option>
                   {metric.options?.map((opt) => (
@@ -341,7 +373,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   max={metric.max}
                   step={metric.type === "percentage" ? "0.1" : "0.01"}
                   className={errors[metric.key] ? "border-red-500" : ""}
-                  disabled={isSubmitted}
+                  disabled={!isEditable}
                 />
               )}
               {errors[metric.key] && (
@@ -354,7 +386,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
           ))}
         </div>
 
-        {!isSubmitted && (
+        {isEditable && (
           <div className="flex space-x-3 pt-4">
             <Button
               variant="outline"
@@ -376,12 +408,21 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
           </div>
         )}
 
-        {isSubmitted && (
+        {isSubmitted && !allowAdminEdit && (
           <Alert className="border-blue-200 bg-blue-50">
             <AlertTriangle className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
               This form has been submitted and cannot be edited. Contact an
               administrator if you need to make changes.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isSubmitted && allowAdminEdit && (
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              <strong>Admin Mode:</strong> This form has been submitted but you can still edit it as an administrator.
             </AlertDescription>
           </Alert>
         )}

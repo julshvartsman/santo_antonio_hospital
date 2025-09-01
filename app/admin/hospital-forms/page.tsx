@@ -160,7 +160,7 @@ export default function HospitalFormsPage() {
   };
 
   const handleViewForm = (formId: string) => {
-    router.push(`/admin/hospital-forms/${formId}?view=true`);
+    router.push(`/admin/hospital-forms/${formId}`);
   };
 
   const getStatusBadge = (submitted: boolean, submittedAt: string | null) => {

@@ -167,10 +167,10 @@ export default function AdminHospitalFormEntry() {
         <p className="text-blue-700">
           {monthNames[month - 1]} {year} - Sustainability Data Entry
         </p>
-        {isViewMode && (
+        {form?.submitted && (
           <p className="text-blue-600 text-sm mt-1">
-            <strong>View Mode:</strong> This form has been submitted and is
-            read-only
+            <strong>Admin Mode:</strong> This form has been submitted but you
+            can still edit it as an administrator.
           </p>
         )}
       </div>
@@ -187,6 +187,7 @@ export default function AdminHospitalFormEntry() {
         isSubmitted={form?.submitted}
         loading={loading}
         saving={saving}
+        allowAdminEdit={true}
       />
 
       {/* Form Info */}

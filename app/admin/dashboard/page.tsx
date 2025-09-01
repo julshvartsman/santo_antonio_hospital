@@ -131,8 +131,6 @@ export default function AdminDashboard() {
     }
   };
 
-
-
   const getSubmissionStatusBadge = (
     submitted: boolean,
     submittedAt?: string
@@ -152,8 +150,6 @@ export default function AdminDashboard() {
     }
   };
 
-
-
   return (
     <div className="space-y-6">
       {/* Page Title */}
@@ -163,8 +159,6 @@ export default function AdminDashboard() {
         </h1>
         <p className="text-gray-600 mt-2">{language.t("dashboard.manage")}</p>
       </div>
-
-
 
       {/* Department Heads Management Section */}
       <Card>
@@ -856,7 +850,6 @@ export default function AdminDashboard() {
                             <Activity className="h-3 w-3" />
                             <span>{language.t("admin.forms.viewReport")}</span>
                           </Button>
-
                         </div>
                       </TableCell>
                     </TableRow>
