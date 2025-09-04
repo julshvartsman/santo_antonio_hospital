@@ -27,41 +27,56 @@ export function useForms() {
       setLoading(true);
       setError(null);
 
-      // Fetch forms with hospital and department head information
-      const { data, error: fetchError } = await supabase
-        .from("forms")
-        .select(`
-          *,
-          hospitals!hospital_id (
-            name,
-            profiles!hospital_id (
-              full_name,
-              email
+      // Fetch forms and department heads separately
+      const [formsResponse, profilesResponse] = await Promise.all([
+        supabase
+          .from("forms")
+          .select(`
+            *,
+            hospitals!hospital_id (
+              name
             )
-          )
-        `)
-        .order("created_at", { ascending: false });
+          `)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id, email, full_name, hospital_id")
+          .eq("role", "department_head")
+      ]);
 
-      if (fetchError) {
-        throw fetchError;
+      if (formsResponse.error) {
+        throw formsResponse.error;
+      }
+      if (profilesResponse.error) {
+        throw profilesResponse.error;
       }
 
+      const formsData = formsResponse.data;
+      const profilesData = profilesResponse.data;
+
       // Transform the data to match our interface
-      const transformedForms: FormData[] = (data || []).map((form: any) => ({
-        id: form.id,
-        hospital_id: form.hospital_id,
-        hospital_name: form.hospitals?.name || "Unknown Hospital",
-        month: form.month,
-        year: form.year,
-        submitted: form.submitted,
-        submitted_at: form.submitted_at,
-        created_at: form.created_at,
-        updated_at: form.updated_at,
-        department_head: form.hospitals?.profiles?.[0] ? {
-          name: form.hospitals.profiles[0].full_name,
-          email: form.hospitals.profiles[0].email,
-        } : undefined,
-      }));
+      const transformedForms: FormData[] = (formsData || []).map((form: any) => {
+        // Find the department head for this hospital
+        const departmentHead = profilesData.find(
+          (profile) => profile.hospital_id === form.hospital_id
+        );
+
+        return {
+          id: form.id,
+          hospital_id: form.hospital_id,
+          hospital_name: form.hospitals?.name || "Unknown Hospital",
+          month: form.month,
+          year: form.year,
+          submitted: form.submitted,
+          submitted_at: form.submitted_at,
+          created_at: form.created_at,
+          updated_at: form.updated_at,
+          department_head: departmentHead ? {
+            name: departmentHead.full_name,
+            email: departmentHead.email,
+          } : undefined,
+        };
+      });
 
       setForms(transformedForms);
     } catch (err: any) {
