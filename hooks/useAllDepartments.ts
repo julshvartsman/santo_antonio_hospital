@@ -188,22 +188,25 @@ export function useAllDepartments() {
       }
 
       // Fetch data in parallel for better performance
-      const [hospitalsResponse, entriesResponse] = await Promise.all([
-        supabase.from("hospitals").select(`
-          *,
-          department_heads!hospital_id (*)
-        `),
+      const [hospitalsResponse, entriesResponse, profilesResponse] = await Promise.all([
+        supabase.from("hospitals").select("*"),
         supabase
           .from("entries")
           .select("*")
           .in("month_year", [currentMonth, previousMonth]),
+        supabase
+          .from("profiles")
+          .select("id, email, full_name, role, hospital_id")
+          .eq("role", "department_head"),
       ]);
 
       if (hospitalsResponse.error) throw hospitalsResponse.error;
       if (entriesResponse.error) throw entriesResponse.error;
+      if (profilesResponse.error) throw profilesResponse.error;
 
       const hospitalsData = hospitalsResponse.data;
       const entriesData = entriesResponse.data;
+      const profilesData = profilesResponse.data;
 
       // Debug: Log the entries data to see what's being fetched
       console.log("🔍 Debug - Entries data fetched:", entriesData);
@@ -217,7 +220,10 @@ export function useAllDepartments() {
       // Process data for each hospital
       const processedHospitals: HospitalWithMetrics[] = hospitalsData.map(
         (hospital) => {
-          const departmentHead = hospital.department_heads[0]; // Assuming one head per hospital
+          // Find the department head for this hospital from profiles data
+          const departmentHead = profilesData.find(
+            (profile) => profile.hospital_id === hospital.id
+          );
 
           const currentEntry = entriesData.find(
             (entry) =>
@@ -335,7 +341,14 @@ export function useAllDepartments() {
 
           return {
             ...hospital,
-            department_head: departmentHead,
+            department_head: departmentHead || {
+              id: "",
+              hospital_id: hospital.id,
+              user_id: "",
+              name: "No Department Head Assigned",
+              email: "No email available",
+              created_at: "",
+            },
             latest_entry: currentEntry,
             current_month_totals,
             previous_month_totals,
